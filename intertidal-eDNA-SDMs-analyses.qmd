@@ -1027,7 +1027,7 @@ combined_rock_sf <- sf::st_cast(combined_rock_sf, "MULTIPOLYGON")
 rock_rast_combined <- raster::rasterize(combined_rock_sf, ocean_temp_present)
 ```
 
-### Wave fetch (Burrows)
+### Wave fetch (Burrows 2012)
 
 2012 wave fetch data is downloaded from <https://figshare.com/articles/dataset/Wave_fetch_GIS_layers_for_the_UK_and_Ireland_at_200m_scale/12029682?file=22107477>.
 
@@ -1139,30 +1139,19 @@ plot(enviro_both,
 dev.off()
 ```
 
-### Check co-linearity
-
-```{r}
-#| label: check-colinearity
-
-#pairs(sdmdata[,2:5], cex=0.1) #air temp and ocean temp highly correlate
-#pairs(sdmdata[,5:8], cex=0.1) #pH with temp looks fine
-```
-
-We can see that air temp and ocean temp are highly correlated, hence we only want to use one of these variables. Ocean temp is a clear driver of biological coastal communities, so we've removed air temp.
-
 ## Fix unmatched occurrence points to environmental data
 
 We can use the `extract` function from the `raster` package to check occurrences and environmental data overlap. Some points are not matched to our environmental data (we've got quite a few NAs). We need to find the closest point which is classed as coastline and use that instead.
 
-Let's do Semibalanus first.
+### Semibalanus corrections
 
 ```{r}
-#| label: correct_marclim_seminbalanus
+#| label: correct_marclim_semibalanus
 
 # snap the valid environmental cells from function created earlier
 semibalanus_corrected_marclim <- snap_to_nearest_valid(
   enviro_vars_current,
-  semibalanus_marclim_broad)
+  semibalanus_MarClim)
 
 # check
 envir_terra <- rast(enviro_vars_current)
@@ -1195,12 +1184,12 @@ semibalanus_corrected_marclim_PA$Semibalanus.balanoides = marclim_broad_sp_PA_se
 ```
 
 ```{r}
-#| label: correct_gbif_seminbalanus
+#| label: correct_gbif_gbif_semibalanus
 
 # snap the valid environmental cells from function created earlier
 semibalanus_corrected_gbif <- snap_to_nearest_valid(
   enviro_vars_current,
-  semibalanus_GBIF_clean_reduced)
+  semibalanus_GBIF_GBIF)
 
 # check
 presvals_semibalanus_corrected_gbif <- extract(envir_terra, semibalanus_corrected_gbif[, c("lon", "lat")]) # this looks better
@@ -1218,29 +1207,29 @@ table(na_points) #no NAs
 ```
 
 ```{r}
-#| label: correct_combined_seminbalanus
+#| label: correct-semibalanus-GBIF-eDNA
 
 # snap the valid environmental cells from function created earlier
-semibalanus_corrected_combined <- snap_to_nearest_valid(
+semibalanus_corrected_GBIF_eDNA <- snap_to_nearest_valid(
   enviro_vars_current,
   semibalanus_GBIF_eDNA)
 
 # check
-presvals_semibalanus_corrected_combined <- extract(envir_terra, semibalanus_corrected_combined[, c("lon", "lat")]) # this looks better
+presvals_semibalanus_corrected_GBIF_eDNA <- extract(envir_terra, semibalanus_corrected_GBIF_eDNA[, c("lon", "lat")]) # this looks better
 
 # remove the ID variable
-presvals_semibalanus_corrected_combined <- presvals_semibalanus_corrected_combined[,-1]
+presvals_semibalanus_corrected_GBIF_eDNA <- presvals_semibalanus_corrected_GBIF_eDNA[,-1]
 
 # check the new data
-head(semibalanus_corrected_combined)
+head(semibalanus_corrected_GBIF_eDNA)
 
 # Count how many presence points have all variables NA (or any NA)
-na_points <- apply(presvals_semibalanus_corrected_combined, 1, function(x) any(is.na(x)))
+na_points <- apply(presvals_semibalanus_corrected_GBIF_eDNA, 1, function(x) any(is.na(x)))
 
 table(na_points) #no NAs
 ```
 
-Now let's do Chthamalus.
+### Chthamalus corrections
 
 ```{r}
 #| label: correct_marclim_chthamalus
@@ -1248,10 +1237,9 @@ Now let's do Chthamalus.
 # snap the valid environmental cells from function created earlier
 chthamalus_corrected_marclim <- snap_to_nearest_valid(
   enviro_vars_current,
-  chthamalus_marclim_broad)
+  chthamalus_MarClim)
 
 # check
-envir_terra <- rast(enviro_vars_current)
 presvals_chthamalus_corrected_marclim <- extract(envir_terra, chthamalus_corrected_marclim) # this looks better
 
 # remove the ID variable
@@ -1288,7 +1276,7 @@ chthamalus_corrected_marclim_PA$Chthamalus.montagui = marclim_broad_sp_PA_chtham
 # snap the valid environmental cells from function created earlier
 chthamalus_corrected_gbif <- snap_to_nearest_valid(
   enviro_vars_current,
-  chthamalus_GBIF_clean_reduced)
+  chthamalus_GBIF_GBIF)
 
 # check
 presvals_chthamalus_corrected_gbif <- extract(envir_terra, chthamalus_corrected_gbif[, c("lon", "lat")]) # this looks better
@@ -1306,24 +1294,24 @@ table(na_points) #no Nas
 ```
 
 ```{r}
-#| label: correct_combined_chthamalus
+#| label: correct-chthamalus-GBIF-eDNA
 
 # snap the valid environmental cells from function created earlier
-chthamalus_corrected_combined <- snap_to_nearest_valid(
+chthamalus_corrected_GBIF_eDNA <- snap_to_nearest_valid(
   enviro_vars_current,
   chthamalus_GBIF_eDNA)
 
 # check
-presvals_chthamalus_corrected_combined <- extract(envir_terra, chthamalus_corrected_combined[, c("lon", "lat")]) # this looks better
+presvals_chthamalus_corrected_GBIF_eDNA <- extract(envir_terra, chthamalus_corrected_GBIF_eDNA[, c("lon", "lat")]) # this looks better
 
 # remove the ID variable
-presvals_chthamalus_corrected_combined <- presvals_chthamalus_corrected_combined[,-1]
+presvals_chthamalus_corrected_GBIF_eDNA <- presvals_chthamalus_corrected_GBIF_eDNA[,-1]
 
 # check the new data
-head(chthamalus_corrected_combined)
+head(chthamalus_corrected_GBIF_eDNA)
 
 # Count how many presence points have all variables NA (or any NA)
-na_points <- apply(presvals_chthamalus_corrected_combined, 1, function(x) any(is.na(x)))
+na_points <- apply(presvals_chthamalus_corrected_GBIF_eDNA, 1, function(x) any(is.na(x)))
 
 table(na_points) #no NAs
 ```
@@ -1334,11 +1322,11 @@ We are going to build our models and forecasts using the `biomod2` package. We w
 
 ### Data formatting
 
-For our models, the GBIF and eDNA data will be used to build the individual models, being split for example 10 times into 70/30 percentages to cross-validate them (which is defined in the next section).
+For our models, the GBIF base + GBIF addition and GBIF base + eDNA addition data will be used to build the individual models, being split for example 10 times into 70/30 percentages to cross-validate them (which is defined in the next section).
 
 The MarClim data will be used to evaluate all models (individual or ensemble) - this is defined when formatting the data in this section.
 
-#### Data set 1 (Semibalanus - visual)
+#### Data set 1 (Semibalanus - GBIF + GBIF)
 
 ```{r}
 #| label: semibalanus-visual-model-data-checks
@@ -1370,7 +1358,7 @@ Now let's put all our data elements into the `BIOMOD_FormatingData` function.
 
 set.seed(seed.val.set)
 
-myBiomodData_semibalanus_visual <- BIOMOD_FormatingData(
+myBiomodData_semibalanus_GBIF <- BIOMOD_FormatingData(
   resp.var = rep(1, nrow(pts_clean)),
   # presence-only
   expl.var = enviro_vars_current,
@@ -1378,8 +1366,8 @@ myBiomodData_semibalanus_visual <- BIOMOD_FormatingData(
   resp.name = 'Semibalanus.balanoides',
   PA.nb.rep = 1,
   # Number of pseudo-absence sets (10 recom by biomd)
-  PA.nb.absences = 3 * nrow(pts_clean),
-  # Number of pseudo-absences (~3 x number of presences)
+  PA.nb.absences = nrow(pts_clean),
+  # Number of pseudo-absences (same number of presences)
   PA.strategy = 'random',
   eval.resp.var = semibalanus_corrected_marclim_PA_df$Semibalanus.balanoides,
   # Evaluation responses (0/1)
@@ -1391,29 +1379,29 @@ myBiomodData_semibalanus_visual <- BIOMOD_FormatingData(
   seed.val = seed.val.set
 )
 
-summary(myBiomodData_semibalanus_visual)
+summary(myBiomodData_semibalanus_GBIF)
 
 # Save BIOMOD_FormatingData plot to PNG
-png("Figures/myBiomodData_semibalanus_visual.png", 
+png("Figures/myBiomodData_semibalanus_GBIF.png", 
     width = 2000, height = 1500, res = 300)  # size in pixels, resolution in DPI
-plot(myBiomodData_semibalanus_visual)
+plot(myBiomodData_semibalanus_GBIF)
 dev.off()
 ```
 
-#### Data set 2 (Semibalanus - combined)
+#### Data set 2 (Semibalanus - GBIF + eDNA)
 
 ```{r}
 #| label: semibalanus-combined-model-data-checks
 
 # occurences
-semibalanus_corrected_combined_df <- as.data.frame(semibalanus_corrected_combined)
-semibalanus_corrected_combined_df$Semibalanus.balanoides <- 1 #add p for gbif
+semibalanus_corrected_GBIF_eDNA_df <- as.data.frame(semibalanus_corrected_GBIF_eDNA)
+semibalanus_corrected_GBIF_eDNA_df$Semibalanus.balanoides <- 1 #add p for gbif
 
 # Extract env values
-env_vals <- extract(envir_terra, semibalanus_corrected_combined)
+env_vals <- extract(envir_terra, semibalanus_corrected_GBIF_eDNA)
 
 # Bind back to coordinates
-pts_with_vals <- cbind(semibalanus_corrected_combined_df, env_vals)
+pts_with_vals <- cbind(semibalanus_corrected_GBIF_eDNA_df, env_vals)
 
 # Remove NAs
 pts_clean <- pts_with_vals[complete.cases(pts_with_vals), c("lon", "lat")]
@@ -1428,7 +1416,7 @@ Now let's put all our data elements into the `BIOMOD_FormatingData` function.
 
 set.seed(seed.val.set)
 
-myBiomodData_semibalanus_combined <- BIOMOD_FormatingData(
+myBiomodData_semibalanus_GBIF_eDNA <- BIOMOD_FormatingData(
   resp.var = rep(1, nrow(pts_clean)) ,
   # presence-only
   expl.var = enviro_vars_current,
@@ -1436,8 +1424,8 @@ myBiomodData_semibalanus_combined <- BIOMOD_FormatingData(
   resp.name = 'Semibalanus.balanoides',
   PA.nb.rep = 1,
   # Number of pseudo-absence sets (10 recom by biomd)
-  PA.nb.absences = 3 * nrow(pts_clean),
-  # Number of pseudo-absences (~3 x number of presences)
+  PA.nb.absences = nrow(pts_clean),
+  # Number of pseudo-absences (same number of presences)
   PA.strategy = 'random',
   eval.resp.var = semibalanus_corrected_marclim_PA_df$Semibalanus.balanoides,
   # Evaluation responses (0/1)
@@ -1449,16 +1437,16 @@ myBiomodData_semibalanus_combined <- BIOMOD_FormatingData(
   seed.val = seed.val.set
 )
 
-summary(myBiomodData_semibalanus_combined)
+summary(myBiomodData_semibalanus_GBIF_eDNA)
 
 # Save BIOMOD_FormatingData plot to PNG
-png("Figures/myBiomodData_semibalanus_combined.png", 
+png("Figures/myBiomodData_semibalanus_GBIF_eDNA.png", 
     width = 2000, height = 1500, res = 300)  # size in pixels, resolution in DPI
-plot(myBiomodData_semibalanus_combined)
+plot(myBiomodData_semibalanus_GBIF_eDNA)
 dev.off()
 ```
 
-#### Data set 3 (Chthamalus - visual)
+#### Data set 3 (Chthamalus - GBIF + GBIF)
 
 ```{r}
 #| label: chthamalus-visual-model-data-checks
@@ -1488,7 +1476,7 @@ pts_clean <- pts_with_vals[complete.cases(pts_with_vals), c("lon", "lat")]
 
 set.seed(seed.val.set)
 
-myBiomodData_chthamalus_visual <- BIOMOD_FormatingData(
+myBiomodData_chthamalus_GBIF <- BIOMOD_FormatingData(
   resp.var = rep(1, nrow(pts_clean)) ,
   # presence-only
   expl.var = enviro_vars_current,
@@ -1496,8 +1484,8 @@ myBiomodData_chthamalus_visual <- BIOMOD_FormatingData(
   resp.name = 'Chthamalus.montagui',
   PA.nb.rep = 1,
   # Number of pseudo-absence sets (10 recom by biomd)
-  PA.nb.absences = 3 * nrow(pts_clean),
-  # Number of pseudo-absences (~3 x number of presences)
+  PA.nb.absences = nrow(pts_clean),
+  # Number of pseudo-absences (same number of presences)
   PA.strategy = 'random',
   eval.resp.var = chthamalus_corrected_marclim_PA_df$Chthamalus.montagui,
   # Evaluation responses (0/1)
@@ -1509,29 +1497,29 @@ myBiomodData_chthamalus_visual <- BIOMOD_FormatingData(
   seed.val = seed.val.set
 )
 
-myBiomodData_chthamalus_visual
+myBiomodData_chthamalus_GBIF
 
 # Save BIOMOD_FormatingData plot to PNG
-png("Figures/myBiomodData_chthamalus_visual.png", 
+png("Figures/myBiomodData_chthamalus_GBIF.png", 
     width = 2000, height = 1500, res = 300)  # size in pixels, resolution in DPI
-plot(myBiomodData_chthamalus_visual)
+plot(myBiomodData_chthamalus_GBIF)
 dev.off()
 ```
 
-#### Data set 4 (Chthamalus - combined)
+#### Data set 4 (Chthamalus - GBIF + eDNA)
 
 ```{r}
 #| label: chthamalus-combined-model-data-checks
 
 # occurences
-chthamalus_corrected_combined_df <- as.data.frame(chthamalus_corrected_combined)
-chthamalus_corrected_combined_df$Semibalanus.balanoides <- 1 #add p for gbif
+chthamalus_corrected_GBIF_eDNA_df <- as.data.frame(chthamalus_corrected_GBIF_eDNA)
+chthamalus_corrected_GBIF_eDNA_df$Semibalanus.balanoides <- 1 #add p for gbif
 
 # Extract env values
-env_vals <- extract(envir_terra, chthamalus_corrected_combined)
+env_vals <- extract(envir_terra, chthamalus_corrected_GBIF_eDNA)
 
 # Bind back to coordinates
-pts_with_vals <- cbind(chthamalus_corrected_combined_df, env_vals)
+pts_with_vals <- cbind(chthamalus_corrected_GBIF_eDNA_df, env_vals)
 
 # Remove NAs
 pts_clean <- pts_with_vals[complete.cases(pts_with_vals), c("lon", "lat")]
@@ -1544,7 +1532,7 @@ pts_clean <- pts_with_vals[complete.cases(pts_with_vals), c("lon", "lat")]
 
 set.seed(seed.val.set)
 
-myBiomodData_chthamalus_combined <- BIOMOD_FormatingData(
+myBiomodData_chthamalus_GBIF_eDNA <- BIOMOD_FormatingData(
   resp.var = rep(1, nrow(pts_clean)) ,
   # presence-only
   expl.var = enviro_vars_current,
@@ -1552,8 +1540,8 @@ myBiomodData_chthamalus_combined <- BIOMOD_FormatingData(
   resp.name = 'Chthamalus.montagui',
   PA.nb.rep = 1,
   # Number of pseudo-absence sets (10 recom by biomd)
-  PA.nb.absences = 3 * nrow(pts_clean),
-  # Number of pseudo-absences (~3 x number of presences)
+  PA.nb.absences = nrow(pts_clean),
+  # Number of pseudo-absences (same number of presences)
   PA.strategy = 'random',
   eval.resp.var = chthamalus_corrected_marclim_PA_df$Chthamalus.montagui,
   # Evaluation responses (0/1)
@@ -1565,12 +1553,12 @@ myBiomodData_chthamalus_combined <- BIOMOD_FormatingData(
   seed.val = seed.val.set
 )
 
-myBiomodData_chthamalus_combined
+myBiomodData_chthamalus_GBIF_eDNA
 
 # Save BIOMOD_FormatingData plot to PNG
-png("Figures/myBiomodData_chthamalus_combined.png", 
+png("Figures/myBiomodData_chthamalus_GBIF_eDNA.png", 
     width = 2000, height = 1500, res = 300)  # size in pixels, resolution in DPI
-plot(myBiomodData_chthamalus_combined)
+plot(myBiomodData_chthamalus_GBIF_eDNA)
 dev.off()
 ```
 
@@ -1579,95 +1567,95 @@ We now have four `biomod` objects ready for modelling.
 ```{r}
 #| label: biomod-objects
 
-summary(myBiomodData_semibalanus_visual)
-summary(myBiomodData_semibalanus_combined)
-summary(myBiomodData_chthamalus_visual)
-summary(myBiomodData_chthamalus_combined)
+summary(myBiomodData_semibalanus_GBIF)
+summary(myBiomodData_semibalanus_GBIF_eDNA)
+summary(myBiomodData_chthamalus_GBIF)
+summary(myBiomodData_chthamalus_GBIF_eDNA)
 ```
 
 ### Cross validation
 
-#### Cross validation 1 (Semibalanus - visual)
+#### Cross validation 1 (Semibalanus - GBIF + GBIF)
 
 ```{r}
-#| label: cross-val-semibalanus-visual
+#| label: cross-val-semibalanus-GBIF
 
 set.seed(seed.val.set)
-cv.sv <- bm_CrossValidation(bm.format = myBiomodData_semibalanus_visual,
+cv.sv <- bm_CrossValidation(bm.format = myBiomodData_semibalanus_GBIF,
                             strategy = 'random',
                             nb.rep = 2,
                             perc = 0.7)
 
 print(cv.sv)
-summary(myBiomodData_semibalanus_visual, calib.lines = cv.sv)
+summary(myBiomodData_semibalanus_GBIF, calib.lines = cv.sv)
 
 # Save plot to PNG
 png("Figures/myBiomodData_validation_semibalanus_visual.png", 
-    width = 1500, height = 2500, res = 300)  # size in pixels, resolution in DPI
-plot(myBiomodData_semibalanus_visual, calib.lines = cv.sv)
+    width = 2000, height = 3000, res = 300)  # size in pixels, resolution in DPI
+plot(myBiomodData_semibalanus_GBIF, calib.lines = cv.sv)
 dev.off()
 ```
 
-#### Cross validation 2 (Semibalanus - combined)
+#### Cross validation 2 (Semibalanus - GBIF + eDNA)
 
 ```{r}
-#| label: cross-val-semibalanus-combined
+#| label: cross-val-semibalanus-GBIF-eDNA
 
 set.seed(seed.val.set)
-cv.sc <- bm_CrossValidation(bm.format = myBiomodData_semibalanus_combined,
+cv.sc <- bm_CrossValidation(bm.format = myBiomodData_semibalanus_GBIF_eDNA,
                             strategy = 'random',
                             nb.rep = 2,
                             perc = 0.7)
 
 print(cv.sc)
-summary(myBiomodData_semibalanus_combined, calib.lines = cv.sc)
+summary(myBiomodData_semibalanus_GBIF_eDNA, calib.lines = cv.sc)
 
 # Save plot to PNG
 png("Figures/myBiomodData_validation_semibalanus_combined.png", 
-    width = 1500, height = 2500, res = 300)  # size in pixels, resolution in DPI
-plot(myBiomodData_semibalanus_combined, calib.lines = cv.sc)
+    width = 2000, height = 3000, res = 300)  # size in pixels, resolution in DPI
+plot(myBiomodData_semibalanus_GBIF_eDNA, calib.lines = cv.sc)
 dev.off()
 ```
 
-#### Cross validation 3 (Chthamalus - visual)
+#### Cross validation 3 (Chthamalus - GBIF + GBIF)
 
 ```{r}
-#| label: cross-val-chthamalus-visual
+#| label: cross-val-chthamalus-GBIF
 
 set.seed(seed.val.set)
-cv.cv <- bm_CrossValidation(bm.format = myBiomodData_chthamalus_visual,
+cv.cv <- bm_CrossValidation(bm.format = myBiomodData_chthamalus_GBIF,
                             strategy = 'random',
                             nb.rep = 2,
                             perc = 0.7)
 
 print(cv.cv)
-summary(myBiomodData_chthamalus_visual, calib.lines = cv.cv)
+summary(myBiomodData_chthamalus_GBIF, calib.lines = cv.cv)
 
 # Save plot to PNG
 png("Figures/myBiomodData_validation_chthamalus_visual.png", 
-    width = 1500, height = 2500, res = 300)  # size in pixels, resolution in DPI
-plot(myBiomodData_chthamalus_visual, calib.lines = cv.cv)
+    width = 2000, height = 3000, res = 300)  # size in pixels, resolution in DPI
+plot(myBiomodData_chthamalus_GBIF, calib.lines = cv.cv)
 dev.off()
 ```
 
-#### Cross validation 4 (Chthamalus - combined)
+#### Cross validation 4 (Chthamalus - GBIF + eDNA)
 
 ```{r}
-#| label: cross-val-chthamalus-combined
+#| label: cross-val-chthamalus-GBIF-eDNA
 
 set.seed(seed.val.set)
-cv.cc <- bm_CrossValidation(bm.format = myBiomodData_chthamalus_combined,
+cv.cc <- bm_CrossValidation(bm.format = myBiomodData_chthamalus_GBIF_eDNA,
                             strategy = 'random',
                             nb.rep = 2,
                             perc = 0.7)
 
 print(cv.cc)
-summary(myBiomodData_chthamalus_combined, calib.lines = cv.cc)
+summary(myBiomodData_chthamalus_GBIF_eDNA, calib.lines = cv.cc)
 
 # Save plot to PNG
 png("Figures/myBiomodData_validation_chthamalus_combined.png", 
-    width = 1500, height = 2500, res = 300)  # size in pixels, resolution in DPI
-plot(myBiomodData_chthamalus_combined, calib.lines = cv.cc)
+    width = 2000, height = 3000, res = 300)  # size in pixels, resolution in DPI
+plot(myBiomodData_chthamalus_GBIF_eDNA, calib.lines = cv.cc)
 dev.off()
 ```
 
@@ -1682,7 +1670,7 @@ TSS_thres <- 0.35
 ROC_thres <- 0.65
 ```
 
-#### Model 1 (Semibalanus - visual)
+#### Model 1 (Semibalanus - GBIF + GBIF)
 
 ```{r}
 #| label: run-model-semibalanus-visual-single
@@ -1692,8 +1680,8 @@ ROC_thres <- 0.65
 set.seed(seed.val.set)
 
 # Model single models
-myBiomodModelOut_semibalanus_visual <- BIOMOD_Modeling(
-  bm.format = myBiomodData_semibalanus_visual,
+myBiomodModelOut_semibalanus_GBIF_GBIF <- BIOMOD_Modeling(
+  bm.format = myBiomodData_semibalanus_GBIF,
   models = c('GAM','GLM','RF','MAXENT'),
   modeling.id = "Semibalanus.visual",
   CV.strategy = 'random', #cross-validation selection strategy
@@ -1706,10 +1694,10 @@ myBiomodModelOut_semibalanus_visual <- BIOMOD_Modeling(
 )
 
 # check which options can be altered
-get_options(myBiomodModelOut_semibalanus_visual)
+get_options(myBiomodModelOut_semibalanus_GBIF_GBIF)
 
 # see output
-myBiomodModelOut_semibalanus_visual
+myBiomodModelOut_semibalanus_GBIF_GBIF
 ```
 
 ```{r}
@@ -1718,22 +1706,22 @@ myBiomodModelOut_semibalanus_visual
 #| results: hide
 
 # Set paths
-table_path <- "Data/Processed_Data/Semi.bal/Individual-Visual/"
-figure_path <- "Figures/Semi.bal/Individual-Visual/"
+table_path <- "Data/Processed_Data/Semi.bal/Individual-GBIF-GBIF/"
+figure_path <- "Figures/Semi.bal/Individual-GBIF-GBIF/"
 
 # Create folders if they don't exist
 if (!dir.exists(table_path)) dir.create(table_path, recursive = TRUE)
 if (!dir.exists(figure_path)) dir.create(figure_path, recursive = TRUE)
 
 # Get evaluation scores & variable importance tables
-eval_scores <- get_evaluations(myBiomodModelOut_semibalanus_visual)
-var_imp <- get_variables_importance(myBiomodModelOut_semibalanus_visual)
+eval_scores <- get_evaluations(myBiomodModelOut_semibalanus_GBIF_GBIF)
+var_imp <- get_variables_importance(myBiomodModelOut_semibalanus_GBIF_GBIF)
 
 write.csv(eval_scores, paste0(table_path, "Evaluations_All.csv"), row.names = TRUE)
 write.csv(var_imp, paste0(table_path, "VariablesImportance_All.csv"), row.names = TRUE)
 
 # calibration means
-eval_calib <- bm_PlotEvalMean(bm.out = myBiomodModelOut_semibalanus_visual, dataset = "calibration")
+eval_calib <- bm_PlotEvalMean(bm.out = myBiomodModelOut_semibalanus_GBIF_GBIF, dataset = "calibration")
 algorithm_cal_plot_SB_CO <- eval_calib$plot + theme_classic() + labs(colour = "Algorithm")
 tab <- eval_calib$tab
 
@@ -1741,7 +1729,7 @@ write.csv(tab, paste0(table_path, "EvalMean_Calibration.csv"), row.names = TRUE)
 ggsave(algorithm_cal_plot_SB_CO, file = paste0(figure_path, "EvalMean_Calibration.png"), width = 7, height = 5)
 
 # evaluation means
-eval_eval <- bm_PlotEvalMean(bm.out = myBiomodModelOut_semibalanus_visual, dataset = "evaluation")
+eval_eval <- bm_PlotEvalMean(bm.out = myBiomodModelOut_semibalanus_GBIF_GBIF, dataset = "evaluation")
 algorithm_eval_plot_SB_CO <- eval_eval$plot + theme_classic() + labs(colour = "Algorithm")
 tab <- eval_eval$tab
 write.csv(tab, paste0(table_path, "EvalMean_Evaluation.csv"), row.names = TRUE)
@@ -1749,33 +1737,33 @@ ggsave(algorithm_eval_plot_SB_CO, file = paste0(figure_path, "EvalMean_Evaluatio
 
 # calibration boxplots - overall 
 # table produced here same as above, already saved
-eval_boxplot_algo <- bm_PlotEvalBoxplot(bm.out = myBiomodModelOut_semibalanus_visual, group.by = c('algo', 'algo'))
+eval_boxplot_algo <- bm_PlotEvalBoxplot(bm.out = myBiomodModelOut_semibalanus_GBIF_GBIF, group.by = c('algo', 'algo'))
 plot <- eval_boxplot_algo$plot + theme_classic() + labs(fill = "Algorithm",
                                                 y = "Calibration")
 ggsave(plot, file = paste0(figure_path, "EvalMean_boxplot.png"), width = 7, height = 5)
 
 # calibration boxplots - by run
-eval_boxplot_algo_run <- bm_PlotEvalBoxplot(bm.out = myBiomodModelOut_semibalanus_visual, group.by = c('algo', 'run'))
+eval_boxplot_algo_run <- bm_PlotEvalBoxplot(bm.out = myBiomodModelOut_semibalanus_GBIF_GBIF, group.by = c('algo', 'run'))
 plot <- eval_boxplot_algo_run$plot + theme_classic() + labs(fill = "Algorithm",
                                                 y = "Calibration")
 ggsave(plot, file = paste0(figure_path, "EvalMean_boxplot_run.png"), width = 8, height = 6)
 
 # Variable importance boxplots - overall 
 # figures (table produced here same as above, already saved
-val_importance_boxplot <- bm_PlotVarImpBoxplot(bm.out = myBiomodModelOut_semibalanus_visual, group.by = c('expl.var', 'algo', 'algo'))
+val_importance_boxplot <- bm_PlotVarImpBoxplot(bm.out = myBiomodModelOut_semibalanus_GBIF_GBIF, group.by = c('expl.var', 'algo', 'algo'))
 plot <- val_importance_boxplot$plot + theme_classic() + labs(fill = "Algorithm")
 ggsave(plot, file = paste0(figure_path, "VarImpBoxplot_ExplVar_Algo.png"), width = 8, height = 8)
 
 # Variable importance boxplots - by run
-val_importance_boxplot_run <- bm_PlotVarImpBoxplot(bm.out = myBiomodModelOut_semibalanus_visual, group.by = c('expl.var', 'algo', 'run'))
+val_importance_boxplot_run <- bm_PlotVarImpBoxplot(bm.out = myBiomodModelOut_semibalanus_GBIF_GBIF, group.by = c('expl.var', 'algo', 'run'))
 plot <- val_importance_boxplot_run$plot + theme_classic() + labs(fill = "Algorithm")
 ggsave(plot, file = paste0(figure_path, "VarImpBoxplot_ExplVar_Algo_Run.png"), width = 8, height = 6)
 
 # Response curves
-models_to_plot <- get_built_models(myBiomodModelOut_semibalanus_visual)[c(1:3, 12:14)]
+models_to_plot <- get_built_models(myBiomodModelOut_semibalanus_GBIF_GBIF)[c(1:3, 12:14)]
 
 # median
-response_median <- bm_PlotResponseCurves(bm.out = myBiomodModelOut_semibalanus_visual, 
+response_median <- bm_PlotResponseCurves(bm.out = myBiomodModelOut_semibalanus_GBIF_GBIF, 
                       models.chosen = models_to_plot,
                       fixed.var = 'median')
 tab <- response_median$tab
@@ -1784,7 +1772,7 @@ write.csv(tab, paste0(table_path, "pred.vals.median.csv"), row.names = TRUE)
 ggsave(plot, file = paste0(figure_path, "ResponseCurves_Median.png"), width = 13, height = 7)
 
 # min
-response_min<-bm_PlotResponseCurves(bm.out = myBiomodModelOut_semibalanus_visual, 
+response_min<-bm_PlotResponseCurves(bm.out = myBiomodModelOut_semibalanus_GBIF_GBIF, 
                       models.chosen = models_to_plot,
                       fixed.var = 'min')
 tab <- response_min$tab
@@ -1793,8 +1781,8 @@ write.csv(tab, paste0(table_path, "pred.vals.median.csv"), row.names = TRUE)
 ggsave(plot, file = paste0(figure_path, "pred.vals.median.png"), width = 13, height = 7)
 
 # heat map - median
-response_heatmap_median <- bm_PlotResponseCurves(bm.out = myBiomodModelOut_semibalanus_visual, 
-                      models.chosen = get_built_models(myBiomodModelOut_semibalanus_visual)[3],
+response_heatmap_median <- bm_PlotResponseCurves(bm.out = myBiomodModelOut_semibalanus_GBIF_GBIF, 
+                      models.chosen = get_built_models(myBiomodModelOut_semibalanus_GBIF_GBIF)[3],
                       fixed.var = 'median',
                       do.bivariate = TRUE)
 plot <- response_heatmap_median$plot + theme_classic()
@@ -1809,8 +1797,8 @@ ggsave(plot, file = paste0(figure_path, "ResponseCurve_Bivariate_Median.png"), w
 set.seed(seed.val.set)
 
 # Model ensemble models
-myBiomodEM_semibalanus_visual <- BIOMOD_EnsembleModeling(
-  bm.mod = myBiomodModelOut_semibalanus_visual,
+myBiomodEM_semibalanus_GBIF_GBIF <- BIOMOD_EnsembleModeling(
+  bm.mod = myBiomodModelOut_semibalanus_GBIF_GBIF,
   models.chosen = 'all',
   em.by = 'all',
   em.algo = c('EMmean', 'EMcv', 'EMci', 'EMca', 'EMwmean'),
@@ -1823,7 +1811,7 @@ myBiomodEM_semibalanus_visual <- BIOMOD_EnsembleModeling(
   seed.val = seed.val.set
 )
 
-myBiomodEM_semibalanus_visual
+myBiomodEM_semibalanus_GBIF_GBIF
 ```
 
 ```{r}
@@ -1832,22 +1820,22 @@ myBiomodEM_semibalanus_visual
 #| results: hide
 
 # Set paths
-table_path <- "Data/Processed_Data/Semi.bal/Ensemble-Visual/"
-figure_path <- "Figures/Semi.bal/Ensemble-Visual/"
+table_path <- "Data/Processed_Data/Semi.bal/Ensemble-GBIF-GBIF/"
+figure_path <- "Figures/Semi.bal/Ensemble-GBIF-GBIF/"
 
 # Create folders if they don't exist
 if (!dir.exists(table_path)) dir.create(table_path, recursive = TRUE)
 if (!dir.exists(figure_path)) dir.create(figure_path, recursive = TRUE)
 
 # Get evaluation scores & variable importance tables
-eval_scores <- get_evaluations(myBiomodEM_semibalanus_visual)
-var_imp <- get_variables_importance(myBiomodEM_semibalanus_visual)
+eval_scores <- get_evaluations(myBiomodEM_semibalanus_GBIF_GBIF)
+var_imp <- get_variables_importance(myBiomodEM_semibalanus_GBIF_GBIF)
 
 write.csv(eval_scores, paste0(table_path, "Evaluations_All.csv"), row.names = TRUE)
 write.csv(var_imp, paste0(table_path, "VariablesImportance_All.csv"), row.names = TRUE)
 
 # calibration means
-eval_calib <- bm_PlotEvalMean(bm.out = myBiomodEM_semibalanus_visual, group.by = 'full.name')
+eval_calib <- bm_PlotEvalMean(bm.out = myBiomodEM_semibalanus_GBIF_GBIF, group.by = 'full.name')
 ensemble_cal_plot_SB_CO <- eval_calib$plot + theme_classic() + labs(colour = "Type") + theme(legend.position = "bottom")
 tab <- eval_calib$tab
 
@@ -1855,7 +1843,7 @@ write.csv(tab, paste0(table_path, "EvalMean_Calibration.csv"), row.names = TRUE)
 ggsave(ensemble_cal_plot_SB_CO, file = paste0(figure_path, "EvalMean_Calibration.png"), width = 7, height = 5)
 
 # evaluation means
-eval_eval <- bm_PlotEvalMean(bm.out = myBiomodEM_semibalanus_visual, dataset = "evaluation")
+eval_eval <- bm_PlotEvalMean(bm.out = myBiomodEM_semibalanus_GBIF_GBIF, dataset = "evaluation")
 ensemble_eval_plot_SB_CO <- eval_eval$plot + theme_classic() + labs(colour = "Type")
 tab <- eval_eval$tab
 write.csv(tab, paste0(table_path, "EvalMean_Evaluation.csv"), row.names = TRUE)
@@ -1863,26 +1851,26 @@ ggsave(ensemble_eval_plot_SB_CO, file = paste0(figure_path, "EvalMean_Evaluation
 
 # calibration boxplots - overall 
 # table produced here same as above, already saved
-eval_boxplot_algo <- bm_PlotEvalBoxplot(bm.out = myBiomodEM_semibalanus_visual, group.by = c('full.name', 'full.name'))
+eval_boxplot_algo <- bm_PlotEvalBoxplot(bm.out = myBiomodEM_semibalanus_GBIF_GBIF, group.by = c('full.name', 'full.name'))
 plot <- eval_boxplot_algo$plot + theme_classic() + labs(fill = "Model",
                                                 y = "Calibration")
 ggsave(plot, file = paste0(figure_path, "EvalMean_boxplot.png"), width = 5, height = 3)
 
 # Variable importance boxplots - overall 
 # figures (table produced here same as above, already saved
-val_importance_boxplot <- bm_PlotVarImpBoxplot(bm.out = myBiomodEM_semibalanus_visual, c('expl.var', 'full.name', 'full.name'))
+val_importance_boxplot <- bm_PlotVarImpBoxplot(bm.out = myBiomodEM_semibalanus_GBIF_GBIF, c('expl.var', 'full.name', 'full.name'))
 plot <- val_importance_boxplot$plot + theme_classic() + labs(fill = "Model")
 ggsave(plot, file = paste0(figure_path, "VarImpBoxplot_ExplVar_Algo.png"), width = 8, height = 8)
 
-val_importance_boxplot_merged <- bm_PlotVarImpBoxplot(bm.out = myBiomodEM_semibalanus_visual, group.by = c('expl.var', 'algo', 'merged.by.run'))
+val_importance_boxplot_merged <- bm_PlotVarImpBoxplot(bm.out = myBiomodEM_semibalanus_GBIF_GBIF, group.by = c('expl.var', 'algo', 'merged.by.run'))
 plot <- val_importance_boxplot_merged$plot + theme_classic() + labs(fill = "Model")
 ggsave(plot, file = paste0(figure_path, "VarImpBoxplot_ExplVar_Algo.png"), width = 8, height = 8)
 
 # Response curves
-models_to_plot <- get_built_models(myBiomodEM_semibalanus_visual)[c(1, 6, 7)]
+models_to_plot <- get_built_models(myBiomodEM_semibalanus_GBIF_GBIF)[c(1, 6, 7)]
 
 # median
-response_median <- bm_PlotResponseCurves(bm.out = myBiomodEM_semibalanus_visual, 
+response_median <- bm_PlotResponseCurves(bm.out = myBiomodEM_semibalanus_GBIF_GBIF, 
                       models.chosen = models_to_plot,
                       fixed.var = 'median')
 tab <- response_median$tab
@@ -1891,7 +1879,7 @@ write.csv(tab, paste0(table_path, "pred.vals.median.csv"), row.names = TRUE)
 ggsave(plot, file = paste0(figure_path, "ResponseCurves_Median.png"), width = 13, height = 7)
 
 # min
-response_min<-bm_PlotResponseCurves(bm.out = myBiomodEM_semibalanus_visual, 
+response_min<-bm_PlotResponseCurves(bm.out = myBiomodEM_semibalanus_GBIF_GBIF, 
                       models.chosen = models_to_plot,
                       fixed.var = 'min')
 tab <- response_min$tab
@@ -1900,15 +1888,15 @@ write.csv(tab, paste0(table_path, "pred.vals.median.csv"), row.names = TRUE)
 ggsave(plot, file = paste0(figure_path, "pred.vals.median.png"), width = 13, height = 7)
 
 # heat map - median
-response_heatmap_median <- bm_PlotResponseCurves(bm.out = myBiomodEM_semibalanus_visual, 
-                      models.chosen = get_built_models(myBiomodEM_semibalanus_visual)[3],
+response_heatmap_median <- bm_PlotResponseCurves(bm.out = myBiomodEM_semibalanus_GBIF_GBIF, 
+                      models.chosen = get_built_models(myBiomodEM_semibalanus_GBIF_GBIF)[3],
                       fixed.var = 'median',
                       do.bivariate = TRUE)
 plot <- response_heatmap_median$plot + theme_classic()
 ggsave(plot, file = paste0(figure_path, "ResponseCurve_Bivariate_Median.png"), width = 15, height = 7)
 ```
 
-#### Model 2 (Semibalanus - combined)
+#### Model 2 (Semibalanus - GBIF + eDNA)
 
 ```{r}
 #| label: run-model-semibalanus-combined-single
@@ -1918,8 +1906,8 @@ ggsave(plot, file = paste0(figure_path, "ResponseCurve_Bivariate_Median.png"), w
 set.seed(seed.val.set)
 
 # Model single models
-myBiomodModelOut_semibalanus_combined <- BIOMOD_Modeling(
-  bm.format = myBiomodData_semibalanus_combined,
+myBiomodModelOut_semibalanus_GBIF_eDNA <- BIOMOD_Modeling(
+  bm.format = myBiomodData_semibalanus_GBIF_eDNA,
   models = c('GAM','GLM','RF','MAXENT'),
   modeling.id = "Semibalanus.combined",
   CV.strategy = 'random',
@@ -1931,9 +1919,9 @@ myBiomodModelOut_semibalanus_combined <- BIOMOD_Modeling(
   seed.val = seed.val.set
 )
 
-get_options(myBiomodModelOut_semibalanus_combined)
+get_options(myBiomodModelOut_semibalanus_GBIF_eDNA)
 
-myBiomodModelOut_semibalanus_combined
+myBiomodModelOut_semibalanus_GBIF_eDNA
 ```
 
 ```{r}
@@ -1942,22 +1930,22 @@ myBiomodModelOut_semibalanus_combined
 #| results: hide
 
 # Set paths
-table_path <- "Data/Processed_Data/Semi.bal/Individual-Combined/"
-figure_path <- "Figures/Semi.bal/Individual-Combined/"
+table_path <- "Data/Processed_Data/Semi.bal/Individual-GBIF-eDNA/"
+figure_path <- "Figures/Semi.bal/Individual-GBIF-eDNA/"
 
 # Create folders if they don't exist
 if (!dir.exists(table_path)) dir.create(table_path, recursive = TRUE)
 if (!dir.exists(figure_path)) dir.create(figure_path, recursive = TRUE)
 
 # Get evaluation scores & variable importance tables
-eval_scores <- get_evaluations(myBiomodModelOut_semibalanus_combined)
-var_imp <- get_variables_importance(myBiomodModelOut_semibalanus_combined)
+eval_scores <- get_evaluations(myBiomodModelOut_semibalanus_GBIF_eDNA)
+var_imp <- get_variables_importance(myBiomodModelOut_semibalanus_GBIF_eDNA)
 
 write.csv(eval_scores, paste0(table_path, "Evaluations_All.csv"), row.names = TRUE)
 write.csv(var_imp, paste0(table_path, "VariablesImportance_All.csv"), row.names = TRUE)
 
 # calibration means
-eval_calib <- bm_PlotEvalMean(bm.out = myBiomodModelOut_semibalanus_combined, dataset = "calibration")
+eval_calib <- bm_PlotEvalMean(bm.out = myBiomodModelOut_semibalanus_GBIF_eDNA, dataset = "calibration")
 algorithm_cal_plot_SB_CE <- eval_calib$plot + theme_classic() + labs(colour = "Algorithm")
 tab <- eval_calib$tab
 
@@ -1965,7 +1953,7 @@ write.csv(tab, paste0(table_path, "EvalMean_Calibration.csv"), row.names = TRUE)
 ggsave(algorithm_cal_plot_SB_CE, file = paste0(figure_path, "EvalMean_Calibration.png"), width = 7, height = 5)
 
 # evaluation means
-eval_eval <- bm_PlotEvalMean(bm.out = myBiomodModelOut_semibalanus_combined, dataset = "evaluation")
+eval_eval <- bm_PlotEvalMean(bm.out = myBiomodModelOut_semibalanus_GBIF_eDNA, dataset = "evaluation")
 algorithm_eval_plot_SB_CE <- eval_eval$plot + theme_classic() + labs(colour = "Algorithm")
 tab <- eval_eval$tab
 write.csv(tab, paste0(table_path, "EvalMean_Evaluation.csv"), row.names = TRUE)
@@ -1973,33 +1961,33 @@ ggsave(algorithm_eval_plot_SB_CE, file = paste0(figure_path, "EvalMean_Evaluatio
 
 # calibration boxplots - overall 
 # table produced here same as above, already saved
-eval_boxplot_algo <- bm_PlotEvalBoxplot(bm.out = myBiomodModelOut_semibalanus_combined, group.by = c('algo', 'algo'))
+eval_boxplot_algo <- bm_PlotEvalBoxplot(bm.out = myBiomodModelOut_semibalanus_GBIF_eDNA, group.by = c('algo', 'algo'))
 plot <- eval_boxplot_algo$plot + theme_classic() + labs(fill = "Algorithm",
                                                 y = "Calibration")
 ggsave(plot, file = paste0(figure_path, "EvalMean_boxplot.png"), width = 7, height = 5)
 
 # calibration boxplots - by run
-eval_boxplot_algo_run <- bm_PlotEvalBoxplot(bm.out = myBiomodModelOut_semibalanus_combined, group.by = c('algo', 'run'))
+eval_boxplot_algo_run <- bm_PlotEvalBoxplot(bm.out = myBiomodModelOut_semibalanus_GBIF_eDNA, group.by = c('algo', 'run'))
 plot <- eval_boxplot_algo_run$plot + theme_classic() + labs(fill = "Algorithm",
                                                 y = "Calibration")
 ggsave(plot, file = paste0(figure_path, "EvalMean_boxplot_run.png"), width = 8, height = 6)
 
 # Variable importance boxplots - overall 
 # figures (table produced here same as above, already saved
-val_importance_boxplot <- bm_PlotVarImpBoxplot(bm.out = myBiomodModelOut_semibalanus_combined, group.by = c('expl.var', 'algo', 'algo'))
+val_importance_boxplot <- bm_PlotVarImpBoxplot(bm.out = myBiomodModelOut_semibalanus_GBIF_eDNA, group.by = c('expl.var', 'algo', 'algo'))
 plot <- val_importance_boxplot$plot + theme_classic() + labs(fill = "Algorithm")
 ggsave(plot, file = paste0(figure_path, "VarImpBoxplot_ExplVar_Algo.png"), width = 8, height = 8)
 
 # Variable importance boxplots - by run
-val_importance_boxplot_run <- bm_PlotVarImpBoxplot(bm.out = myBiomodModelOut_semibalanus_combined, group.by = c('expl.var', 'algo', 'run'))
+val_importance_boxplot_run <- bm_PlotVarImpBoxplot(bm.out = myBiomodModelOut_semibalanus_GBIF_eDNA, group.by = c('expl.var', 'algo', 'run'))
 plot <- val_importance_boxplot_run$plot + theme_classic() + labs(fill = "Model")
 ggsave(plot, file = paste0(figure_path, "VarImpBoxplot_ExplVar_Algo_Run.png"), width = 8, height = 6)
 
 # Response curves
-models_to_plot <- get_built_models(myBiomodModelOut_semibalanus_combined)[c(1:3, 12:14)]
+models_to_plot <- get_built_models(myBiomodModelOut_semibalanus_GBIF_eDNA)[c(1:3, 12:14)]
 
 # median
-response_median <- bm_PlotResponseCurves(bm.out = myBiomodModelOut_semibalanus_combined, 
+response_median <- bm_PlotResponseCurves(bm.out = myBiomodModelOut_semibalanus_GBIF_eDNA, 
                       models.chosen = models_to_plot,
                       fixed.var = 'median')
 tab <- response_median$tab
@@ -2008,7 +1996,7 @@ write.csv(tab, paste0(table_path, "pred.vals.median.csv"), row.names = TRUE)
 ggsave(plot, file = paste0(figure_path, "ResponseCurves_Median.png"), width = 13, height = 7)
 
 # min
-response_min<-bm_PlotResponseCurves(bm.out = myBiomodModelOut_semibalanus_combined, 
+response_min<-bm_PlotResponseCurves(bm.out = myBiomodModelOut_semibalanus_GBIF_eDNA, 
                       models.chosen = models_to_plot,
                       fixed.var = 'min')
 tab <- response_min$tab
@@ -2017,8 +2005,8 @@ write.csv(tab, paste0(table_path, "pred.vals.median.csv"), row.names = TRUE)
 ggsave(plot, file = paste0(figure_path, "pred.vals.median.png"), width = 13, height = 7)
 
 # heat map - median
-response_heatmap_median <- bm_PlotResponseCurves(bm.out = myBiomodModelOut_semibalanus_combined, 
-                      models.chosen = get_built_models(myBiomodModelOut_semibalanus_combined)[3],
+response_heatmap_median <- bm_PlotResponseCurves(bm.out = myBiomodModelOut_semibalanus_GBIF_eDNA, 
+                      models.chosen = get_built_models(myBiomodModelOut_semibalanus_GBIF_eDNA)[3],
                       fixed.var = 'median',
                       do.bivariate = TRUE)
 plot <- response_heatmap_median$plot + theme_classic()
@@ -2033,8 +2021,8 @@ ggsave(plot, file = paste0(figure_path, "ResponseCurve_Bivariate_Median.png"), w
 set.seed(seed.val.set)
 
 # Model ensemble models
-myBiomodEM_semibalanus_combined <- BIOMOD_EnsembleModeling(
-  bm.mod = myBiomodModelOut_semibalanus_combined,
+myBiomodEM_semibalanus_GBIF_eDNA <- BIOMOD_EnsembleModeling(
+  bm.mod = myBiomodModelOut_semibalanus_GBIF_eDNA,
   models.chosen = 'all',
   em.by = 'all',
   em.algo = c('EMmean', 'EMcv', 'EMci', 'EMca', 'EMwmean'),
@@ -2047,7 +2035,7 @@ myBiomodEM_semibalanus_combined <- BIOMOD_EnsembleModeling(
   seed.val = seed.val.set
 )
 
-myBiomodEM_semibalanus_combined
+myBiomodEM_semibalanus_GBIF_eDNA
 ```
 
 ```{r}
@@ -2056,22 +2044,22 @@ myBiomodEM_semibalanus_combined
 #| results: hide
 
 # Set paths
-table_path <- "Data/Processed_Data/Semi.bal/Ensemble-Combined/"
-figure_path <- "Figures/Semi.bal/Ensemble-Combined/"
+table_path <- "Data/Processed_Data/Semi.bal/Ensemble-GBIF-eDNA/"
+figure_path <- "Figures/Semi.bal/Ensemble-GBIF-eDNA/"
 
 # Create folders if they don't exist
 if (!dir.exists(table_path)) dir.create(table_path, recursive = TRUE)
 if (!dir.exists(figure_path)) dir.create(figure_path, recursive = TRUE)
 
 # Get evaluation scores & variable importance tables
-eval_scores <- get_evaluations(myBiomodEM_semibalanus_combined)
-var_imp <- get_variables_importance(myBiomodEM_semibalanus_combined)
+eval_scores <- get_evaluations(myBiomodEM_semibalanus_GBIF_eDNA)
+var_imp <- get_variables_importance(myBiomodEM_semibalanus_GBIF_eDNA)
 
 write.csv(eval_scores, paste0(table_path, "Evaluations_All.csv"), row.names = TRUE)
 write.csv(var_imp, paste0(table_path, "VariablesImportance_All.csv"), row.names = TRUE)
 
 # calibration means
-eval_calib <- bm_PlotEvalMean(bm.out = myBiomodEM_semibalanus_combined, group.by = 'full.name')
+eval_calib <- bm_PlotEvalMean(bm.out = myBiomodEM_semibalanus_GBIF_eDNA, group.by = 'full.name')
 plot <- eval_calib$plot + theme_classic() + labs(colour = "Type")
 tab <- eval_calib$tab
 
@@ -2079,7 +2067,7 @@ write.csv(tab, paste0(table_path, "EvalMean_Calibration.csv"), row.names = TRUE)
 ggsave(plot, file = paste0(figure_path, "EvalMean_Calibration.png"), width = 7, height = 5)
 
 # evaluation means
-eval_eval <- bm_PlotEvalMean(bm.out = myBiomodEM_semibalanus_combined, dataset = "evaluation")
+eval_eval <- bm_PlotEvalMean(bm.out = myBiomodEM_semibalanus_GBIF_eDNA, dataset = "evaluation")
 ensemble_eval_plot_SB_CE <- eval_eval$plot + theme_classic() + labs(colour = "Type")
 tab <- eval_eval$tab
 write.csv(tab, paste0(table_path, "EvalMean_Evaluation.csv"), row.names = TRUE)
@@ -2087,26 +2075,26 @@ ggsave(ensemble_eval_plot_SB_CE, file = paste0(figure_path, "EvalMean_Evaluation
 
 # calibration boxplots - overall 
 # table produced here same as above, already saved
-eval_boxplot_algo <- bm_PlotEvalBoxplot(bm.out = myBiomodEM_semibalanus_combined, group.by = c('full.name', 'full.name'))
+eval_boxplot_algo <- bm_PlotEvalBoxplot(bm.out = myBiomodEM_semibalanus_GBIF_eDNA, group.by = c('full.name', 'full.name'))
 plot <- eval_boxplot_algo$plot + theme_classic() + labs(fill = "Type",
                                                 y = "Calibration")
 ggsave(plot, file = paste0(figure_path, "EvalMean_boxplot.png"), width = 10, height = 5)
 
 # Variable importance boxplots - overall 
 # figures (table produced here same as above, already saved
-val_importance_boxplot <- bm_PlotVarImpBoxplot(bm.out = myBiomodEM_semibalanus_combined, c('expl.var', 'full.name', 'full.name'))
+val_importance_boxplot <- bm_PlotVarImpBoxplot(bm.out = myBiomodEM_semibalanus_GBIF_eDNA, c('expl.var', 'full.name', 'full.name'))
 plot <- val_importance_boxplot$plot + theme_classic() + labs(fill = "Model")
 ggsave(plot, file = paste0(figure_path, "VarImpBoxplot_ExplVar_Algo.png"), width = 8, height = 8)
 
-val_importance_boxplot_merged <- bm_PlotVarImpBoxplot(bm.out = myBiomodEM_semibalanus_combined, group.by = c('expl.var', 'algo', 'merged.by.run'))
+val_importance_boxplot_merged <- bm_PlotVarImpBoxplot(bm.out = myBiomodEM_semibalanus_GBIF_eDNA, group.by = c('expl.var', 'algo', 'merged.by.run'))
 plot <- val_importance_boxplot_merged$plot + theme_classic() + labs(fill = "Model")
 ggsave(plot, file = paste0(figure_path, "VarImpBoxplot_ExplVar_Algo.png"), width = 8, height = 8)
 
 # Response curves
-models_to_plot <- models_to_plot <- get_built_models(myBiomodEM_semibalanus_combined)[c(1, 6, 7)]
+models_to_plot <- models_to_plot <- get_built_models(myBiomodEM_semibalanus_GBIF_eDNA)[c(1, 6, 7)]
 
 # median
-response_median <- bm_PlotResponseCurves(bm.out = myBiomodEM_semibalanus_combined, 
+response_median <- bm_PlotResponseCurves(bm.out = myBiomodEM_semibalanus_GBIF_eDNA, 
                       models.chosen = models_to_plot,
                       fixed.var = 'median')
 tab <- response_median$tab
@@ -2115,7 +2103,7 @@ write.csv(tab, paste0(table_path, "pred.vals.median.csv"), row.names = TRUE)
 ggsave(plot, file = paste0(figure_path, "ResponseCurves_Median.png"), width = 13, height = 7)
 
 # min
-response_min<-bm_PlotResponseCurves(bm.out = myBiomodEM_semibalanus_combined, 
+response_min<-bm_PlotResponseCurves(bm.out = myBiomodEM_semibalanus_GBIF_eDNA, 
                       models.chosen = models_to_plot,
                       fixed.var = 'min')
 tab <- response_min$tab
@@ -2124,8 +2112,8 @@ write.csv(tab, paste0(table_path, "pred.vals.median.csv"), row.names = TRUE)
 ggsave(plot, file = paste0(figure_path, "pred.vals.median.png"), width = 13, height = 7)
 
 # heat map - median
-response_heatmap_median <- bm_PlotResponseCurves(bm.out = myBiomodEM_semibalanus_combined, 
-                      models.chosen = get_built_models(myBiomodEM_semibalanus_combined)[7],
+response_heatmap_median <- bm_PlotResponseCurves(bm.out = myBiomodEM_semibalanus_GBIF_eDNA, 
+                      models.chosen = get_built_models(myBiomodEM_semibalanus_GBIF_eDNA)[7],
                       fixed.var = 'median',
                       do.bivariate = TRUE)
 plot <- response_heatmap_median$plot + theme_classic()
@@ -2145,11 +2133,11 @@ SB_assessment_plot <- cowplot::plot_grid(
   algorithm_eval_plot_SB_CO,
   algorithm_eval_plot_SB_CE,
   ncol = 2, 
-  labels = c("a) Ensemble (GBIF-only)", 
+  labels = c("a) Ensemble (GBIF + GBIF)", 
              "b) Ensemble (GBIF-eDNA)", 
-             "c) Algorithms (Calibration, GBIF-only)", 
+             "c) Algorithms (Calibration, GBIF + GBIF)", 
              "d) Algorithms (Calibration, GBIF-eDNA)",
-             "e) Algorithms (Evaluation, GBIF-only)",
+             "e) Algorithms (Evaluation, GBIF + GBIF)",
              "f) Algorithms (Evaluation, GBIF-eDNA)"), 
   align = "v",
   label_x = 0,   # left align labels (0 = far left, 1 = far right)
@@ -2165,7 +2153,7 @@ SB_assessment_plot
 ggsave(SB_assessment_plot, filename = "Figures/SB_assessment_plot.png", width = 12, height = 15, dpi = 300)
 ```
 
-#### Model 3 (Chthamalus - visual)
+#### Model 3 (Chthamalus - GBIF + GBIF)
 
 ```{r}
 #| label: run-model-chthamalus-visual-single
@@ -2175,8 +2163,8 @@ ggsave(SB_assessment_plot, filename = "Figures/SB_assessment_plot.png", width = 
 set.seed(seed.val.set)
 
 # Model single models
-myBiomodModelOut_chthamalus_visual <- BIOMOD_Modeling(
-  bm.format = myBiomodData_chthamalus_visual,
+myBiomodModelOut_chthamalus_GBIF <- BIOMOD_Modeling(
+  bm.format = myBiomodData_chthamalus_GBIF,
   models = c('GAM','GLM','RF','MAXENT'),
   modeling.id = "chthamalus.visual",
   CV.strategy = 'random',
@@ -2188,9 +2176,9 @@ myBiomodModelOut_chthamalus_visual <- BIOMOD_Modeling(
   seed.val = seed.val.set
 )
 
-get_options(myBiomodModelOut_chthamalus_visual)
+get_options(myBiomodModelOut_chthamalus_GBIF)
 
-myBiomodModelOut_chthamalus_visual
+myBiomodModelOut_chthamalus_GBIF
 ```
 
 ```{r}
@@ -2199,22 +2187,22 @@ myBiomodModelOut_chthamalus_visual
 #| results: hide
 
 # Set paths
-table_path <- "Data/Processed_Data/Chtham.mont/Individual-Visual/"
-figure_path <- "Figures/Chtham.mont/Individual-Visual/"
+table_path <- "Data/Processed_Data/Chtham.mont/Individual-GBIF-GBIF/"
+figure_path <- "Figures/Chtham.mont/Individual-GBIF-GBIF/"
 
 # Create folders if they don't exist
 if (!dir.exists(table_path)) dir.create(table_path, recursive = TRUE)
 if (!dir.exists(figure_path)) dir.create(figure_path, recursive = TRUE)
 
 # Get evaluation scores & variable importance tables
-eval_scores <- get_evaluations(myBiomodModelOut_chthamalus_visual)
-var_imp <- get_variables_importance(myBiomodModelOut_chthamalus_visual)
+eval_scores <- get_evaluations(myBiomodModelOut_chthamalus_GBIF)
+var_imp <- get_variables_importance(myBiomodModelOut_chthamalus_GBIF)
 
 write.csv(eval_scores, paste0(table_path, "Evaluations_All.csv"), row.names = TRUE)
 write.csv(var_imp, paste0(table_path, "VariablesImportance_All.csv"), row.names = TRUE)
 
 # calibration means
-eval_calib <- bm_PlotEvalMean(bm.out = myBiomodModelOut_chthamalus_visual, dataset = "calibration")
+eval_calib <- bm_PlotEvalMean(bm.out = myBiomodModelOut_chthamalus_GBIF, dataset = "calibration")
 algorithm_cal_plot_CM_CO <- eval_calib$plot + theme_classic() + labs(colour = "Algorithm")
 tab <- eval_calib$tab
 
@@ -2222,7 +2210,7 @@ write.csv(tab, paste0(table_path, "EvalMean_Calibration.csv"), row.names = TRUE)
 ggsave(algorithm_cal_plot_CM_CO, file = paste0(figure_path, "EvalMean_Calibration.png"), width = 7, height = 5)
 
 # evaluation means
-eval_eval <- bm_PlotEvalMean(bm.out = myBiomodModelOut_chthamalus_visual, dataset = "evaluation")
+eval_eval <- bm_PlotEvalMean(bm.out = myBiomodModelOut_chthamalus_GBIF, dataset = "evaluation")
 algorithm_eval_plot_CM_CO <- eval_eval$plot + theme_classic() + labs(colour = "Algorithm")
 tab <- eval_eval$tab
 write.csv(tab, paste0(table_path, "EvalMean_Evaluation.csv"), row.names = TRUE)
@@ -2230,33 +2218,33 @@ ggsave(algorithm_eval_plot_CM_CO, file = paste0(figure_path, "EvalMean_Evaluatio
 
 # calibration boxplots - overall 
 # table produced here same as above, already saved
-eval_boxplot_algo <- bm_PlotEvalBoxplot(bm.out = myBiomodModelOut_chthamalus_visual, group.by = c('algo', 'algo'))
+eval_boxplot_algo <- bm_PlotEvalBoxplot(bm.out = myBiomodModelOut_chthamalus_GBIF, group.by = c('algo', 'algo'))
 plot <- eval_boxplot_algo$plot + theme_classic() + labs(fill = "Algorithm",
                                                 y = "Calibration")
 ggsave(plot, file = paste0(figure_path, "EvalMean_boxplot.png"), width = 7, height = 5)
 
 # calibration boxplots - by run
-eval_boxplot_algo_run <- bm_PlotEvalBoxplot(bm.out = myBiomodModelOut_chthamalus_visual, group.by = c('algo', 'run'))
+eval_boxplot_algo_run <- bm_PlotEvalBoxplot(bm.out = myBiomodModelOut_chthamalus_GBIF, group.by = c('algo', 'run'))
 plot <- eval_boxplot_algo_run$plot + theme_classic() + labs(fill = "Algorithm",
                                                 y = "Calibration")
 ggsave(plot, file = paste0(figure_path, "EvalMean_boxplot_run.png"), width = 8, height = 6)
 
 # Variable importance boxplots - overall 
 # figures (table produced here same as above, already saved
-val_importance_boxplot <- bm_PlotVarImpBoxplot(bm.out = myBiomodModelOut_chthamalus_visual, group.by = c('expl.var', 'algo', 'algo'))
+val_importance_boxplot <- bm_PlotVarImpBoxplot(bm.out = myBiomodModelOut_chthamalus_GBIF, group.by = c('expl.var', 'algo', 'algo'))
 plot <- val_importance_boxplot$plot + theme_classic() + labs(fill = "Algorithm")
 ggsave(plot, file = paste0(figure_path, "VarImpBoxplot_ExplVar_Algo.png"), width = 8, height = 8)
 
 # Variable importance boxplots - by run
-val_importance_boxplot_run <- bm_PlotVarImpBoxplot(bm.out = myBiomodModelOut_chthamalus_visual, group.by = c('expl.var', 'algo', 'run'))
+val_importance_boxplot_run <- bm_PlotVarImpBoxplot(bm.out = myBiomodModelOut_chthamalus_GBIF, group.by = c('expl.var', 'algo', 'run'))
 plot <- val_importance_boxplot_run$plot + theme_classic() + labs(fill = "Algorithm")
 ggsave(plot, file = paste0(figure_path, "VarImpBoxplot_ExplVar_Algo_Run.png"), width = 8, height = 6)
 
 # Response curves
-models_to_plot <- get_built_models(myBiomodModelOut_chthamalus_visual)[c(1:3, 12:14)]
+models_to_plot <- get_built_models(myBiomodModelOut_chthamalus_GBIF)[c(1:3, 12:14)]
 
 # median
-response_median <- bm_PlotResponseCurves(bm.out = myBiomodModelOut_chthamalus_visual, 
+response_median <- bm_PlotResponseCurves(bm.out = myBiomodModelOut_chthamalus_GBIF, 
                       models.chosen = models_to_plot,
                       fixed.var = 'median')
 tab <- response_median$tab
@@ -2265,7 +2253,7 @@ write.csv(tab, paste0(table_path, "pred.vals.median.csv"), row.names = TRUE)
 ggsave(plot, file = paste0(figure_path, "ResponseCurves_Median.png"), width = 13, height = 7)
 
 # min
-response_min<-bm_PlotResponseCurves(bm.out = myBiomodModelOut_chthamalus_visual, 
+response_min<-bm_PlotResponseCurves(bm.out = myBiomodModelOut_chthamalus_GBIF, 
                       models.chosen = models_to_plot,
                       fixed.var = 'min')
 tab <- response_min$tab
@@ -2274,8 +2262,8 @@ write.csv(tab, paste0(table_path, "pred.vals.median.csv"), row.names = TRUE)
 ggsave(plot, file = paste0(figure_path, "pred.vals.median.png"), width = 13, height = 7)
 
 # heat map - median
-response_heatmap_median <- bm_PlotResponseCurves(bm.out = myBiomodModelOut_chthamalus_visual, 
-                      models.chosen = get_built_models(myBiomodModelOut_chthamalus_visual)[3],
+response_heatmap_median <- bm_PlotResponseCurves(bm.out = myBiomodModelOut_chthamalus_GBIF, 
+                      models.chosen = get_built_models(myBiomodModelOut_chthamalus_GBIF)[3],
                       fixed.var = 'median',
                       do.bivariate = TRUE)
 plot <- response_heatmap_median$plot + theme_classic()
@@ -2290,8 +2278,8 @@ ggsave(plot, file = paste0(figure_path, "ResponseCurve_Bivariate_Median.png"), w
 set.seed(seed.val.set)
 
 # Model ensemble models (takes around 30 mins)
-myBiomodEM_chthamalus_visual <- BIOMOD_EnsembleModeling(
-  bm.mod = myBiomodModelOut_chthamalus_visual,
+myBiomodEM_chthamalus_GBIF_GBIF <- BIOMOD_EnsembleModeling(
+  bm.mod = myBiomodModelOut_chthamalus_GBIF,
   models.chosen = 'all',
   em.by = 'all',
   em.algo = c('EMmean', 'EMcv', 'EMci', 'EMca', 'EMwmean'),
@@ -2304,7 +2292,7 @@ myBiomodEM_chthamalus_visual <- BIOMOD_EnsembleModeling(
   seed.val = seed.val.set
 )
 
-myBiomodEM_chthamalus_visual
+myBiomodEM_chthamalus_GBIF_GBIF
 ```
 
 ```{r}
@@ -2313,22 +2301,22 @@ myBiomodEM_chthamalus_visual
 #| results: hide
 
 # Set paths
-table_path <- "Data/Processed_Data/Chtham.mont/Ensemble-Visual/"
-figure_path <- "Figures/Chtham.mont/Ensemble-Visual/"
+table_path <- "Data/Processed_Data/Chtham.mont/Ensemble-GBIF-GBIF/"
+figure_path <- "Figures/Chtham.mont/Ensemble-GBIF-GBIF/"
 
 # Create folders if they don't exist
 if (!dir.exists(table_path)) dir.create(table_path, recursive = TRUE)
 if (!dir.exists(figure_path)) dir.create(figure_path, recursive = TRUE)
 
 # Get evaluation scores & variable importance tables
-eval_scores <- get_evaluations(myBiomodEM_chthamalus_visual)
-var_imp <- get_variables_importance(myBiomodEM_chthamalus_visual)
+eval_scores <- get_evaluations(myBiomodEM_chthamalus_GBIF_GBIF)
+var_imp <- get_variables_importance(myBiomodEM_chthamalus_GBIF_GBIF)
 
 write.csv(eval_scores, paste0(table_path, "Evaluations_All.csv"), row.names = TRUE)
 write.csv(var_imp, paste0(table_path, "VariablesImportance_All.csv"), row.names = TRUE)
 
 # calibration means
-eval_calib <- bm_PlotEvalMean(bm.out = myBiomodEM_chthamalus_visual, group.by = 'full.name')
+eval_calib <- bm_PlotEvalMean(bm.out = myBiomodEM_chthamalus_GBIF_GBIF, group.by = 'full.name')
 plot <- eval_calib$plot + theme_classic() + labs(colour = "Type")
 tab <- eval_calib$tab
 
@@ -2336,7 +2324,7 @@ write.csv(tab, paste0(table_path, "EvalMean_Calibration.csv"), row.names = TRUE)
 ggsave(plot, file = paste0(figure_path, "EvalMean_Calibration.png"), width = 10, height = 5)
 
 # evaluation means
-eval_eval <- bm_PlotEvalMean(bm.out = myBiomodEM_chthamalus_visual, dataset = "evaluation")
+eval_eval <- bm_PlotEvalMean(bm.out = myBiomodEM_chthamalus_GBIF_GBIF, dataset = "evaluation")
 ensemble_eval_plot_CM_CO <- eval_eval$plot + theme_classic() + labs(colour = "Type")
 tab <- eval_eval$tab
 write.csv(tab, paste0(table_path, "EvalMean_Evaluation.csv"), row.names = TRUE)
@@ -2344,26 +2332,26 @@ ggsave(ensemble_eval_plot_CM_CO, file = paste0(figure_path, "EvalMean_Evaluation
 
 # calibration boxplots - overall 
 # table produced here same as above, already saved
-eval_boxplot_algo <- bm_PlotEvalBoxplot(bm.out = myBiomodEM_chthamalus_visual, group.by = c('full.name', 'full.name'))
+eval_boxplot_algo <- bm_PlotEvalBoxplot(bm.out = myBiomodEM_chthamalus_GBIF_GBIF, group.by = c('full.name', 'full.name'))
 plot <- eval_boxplot_algo$plot + theme_classic() + labs(fill = "Type",
                                                 y = "Calibration")
 ggsave(plot, file = paste0(figure_path, "EvalMean_boxplot.png"), width = 7, height = 5)
 
 # Variable importance boxplots - overall 
 # figures (table produced here same as above, already saved
-val_importance_boxplot <- bm_PlotVarImpBoxplot(bm.out = myBiomodEM_chthamalus_visual, c('expl.var', 'full.name', 'full.name'))
+val_importance_boxplot <- bm_PlotVarImpBoxplot(bm.out = myBiomodEM_chthamalus_GBIF_GBIF, c('expl.var', 'full.name', 'full.name'))
 plot <- val_importance_boxplot$plot + theme_classic() + labs(fill = "Type")
 ggsave(plot, file = paste0(figure_path, "VarImpBoxplot_ExplVar_Algo.png"), width = 8, height = 8)
 
-val_importance_boxplot_merged <- bm_PlotVarImpBoxplot(bm.out = myBiomodEM_chthamalus_visual, group.by = c('expl.var', 'algo', 'merged.by.run'))
+val_importance_boxplot_merged <- bm_PlotVarImpBoxplot(bm.out = myBiomodEM_chthamalus_GBIF_GBIF, group.by = c('expl.var', 'algo', 'merged.by.run'))
 plot <- val_importance_boxplot_merged$plot + theme_classic() + labs(fill = "Type")
 ggsave(plot, file = paste0(figure_path, "VarImpBoxplot_ExplVar_Algo.png"), width = 8, height = 8)
 
 # Response curves
-models_to_plot <- get_built_models(myBiomodEM_chthamalus_visual)[c(1, 6, 7)]
+models_to_plot <- get_built_models(myBiomodEM_chthamalus_GBIF_GBIF)[c(1, 6, 7)]
 
 # median
-response_median <- bm_PlotResponseCurves(bm.out = myBiomodEM_chthamalus_visual, 
+response_median <- bm_PlotResponseCurves(bm.out = myBiomodEM_chthamalus_GBIF_GBIF, 
                       models.chosen = models_to_plot,
                       fixed.var = 'median')
 tab <- response_median$tab
@@ -2372,7 +2360,7 @@ write.csv(tab, paste0(table_path, "pred.vals.median.csv"), row.names = TRUE)
 ggsave(plot, file = paste0(figure_path, "ResponseCurves_Median.png"), width = 13, height = 7)
 
 # min
-response_min<-bm_PlotResponseCurves(bm.out = myBiomodEM_chthamalus_visual, 
+response_min<-bm_PlotResponseCurves(bm.out = myBiomodEM_chthamalus_GBIF_GBIF, 
                       models.chosen = models_to_plot,
                       fixed.var = 'min')
 tab <- response_min$tab
@@ -2381,15 +2369,15 @@ write.csv(tab, paste0(table_path, "pred.vals.median.csv"), row.names = TRUE)
 ggsave(plot, file = paste0(figure_path, "pred.vals.median.png"), width = 13, height = 7)
 
 # heat map - median
-response_heatmap_median <- bm_PlotResponseCurves(bm.out = myBiomodEM_chthamalus_visual, 
-                      models.chosen = get_built_models(myBiomodEM_chthamalus_visual)[7],
+response_heatmap_median <- bm_PlotResponseCurves(bm.out = myBiomodEM_chthamalus_GBIF_GBIF, 
+                      models.chosen = get_built_models(myBiomodEM_chthamalus_GBIF_GBIF)[7],
                       fixed.var = 'median',
                       do.bivariate = TRUE)
 plot <- response_heatmap_median$plot + theme_classic()
 ggsave(plot, file = paste0(figure_path, "ResponseCurve_Bivariate_Median.png"), width = 15, height = 7)
 ```
 
-#### Model 4 (Chthamalus - combined)
+#### Model 4 (Chthamalus - GBIF + eDNA)
 
 ```{r}
 #| label: run-model-chthamalus-combined-single
@@ -2399,8 +2387,8 @@ ggsave(plot, file = paste0(figure_path, "ResponseCurve_Bivariate_Median.png"), w
 set.seed(seed.val.set)
 
 # Model single models
-myBiomodModelOut_chthamalus_combined <- BIOMOD_Modeling(
-  bm.format = myBiomodData_chthamalus_combined,
+myBiomodModelOut_chthamalus_GBIF_eDNA <- BIOMOD_Modeling(
+  bm.format = myBiomodData_chthamalus_GBIF_eDNA,
   models = c('GAM','GLM','RF','MAXENT'),
   modeling.id = "chthamalus.combined",
   CV.strategy = 'random',
@@ -2412,9 +2400,9 @@ myBiomodModelOut_chthamalus_combined <- BIOMOD_Modeling(
   seed.val = seed.val.set
 )
 
-get_options(myBiomodModelOut_chthamalus_combined)
+get_options(myBiomodModelOut_chthamalus_GBIF_eDNA)
 
-myBiomodModelOut_chthamalus_combined
+myBiomodModelOut_chthamalus_GBIF_eDNA
 ```
 
 ```{r}
@@ -2423,22 +2411,22 @@ myBiomodModelOut_chthamalus_combined
 #| results: hide
 
 # Set paths
-table_path <- "Data/Processed_Data/Chtham.mont/Individual-Combined/"
-figure_path <- "Figures/Chtham.mont/Individual-Combined/"
+table_path <- "Data/Processed_Data/Chtham.mont/Individual-GBIF-eDNA/"
+figure_path <- "Figures/Chtham.mont/Individual-GBIF-eDNA/"
 
 # Create folders if they don't exist
 if (!dir.exists(table_path)) dir.create(table_path, recursive = TRUE)
 if (!dir.exists(figure_path)) dir.create(figure_path, recursive = TRUE)
 
 # Get evaluation scores & variable importance tables
-eval_scores <- get_evaluations(myBiomodModelOut_chthamalus_combined)
-var_imp <- get_variables_importance(myBiomodModelOut_chthamalus_combined)
+eval_scores <- get_evaluations(myBiomodModelOut_chthamalus_GBIF_eDNA)
+var_imp <- get_variables_importance(myBiomodModelOut_chthamalus_GBIF_eDNA)
 
 write.csv(eval_scores, paste0(table_path, "Evaluations_All.csv"), row.names = TRUE)
 write.csv(var_imp, paste0(table_path, "VariablesImportance_All.csv"), row.names = TRUE)
 
 # calibration means
-eval_calib <- bm_PlotEvalMean(bm.out = myBiomodModelOut_chthamalus_combined, dataset = "calibration")
+eval_calib <- bm_PlotEvalMean(bm.out = myBiomodModelOut_chthamalus_GBIF_eDNA, dataset = "calibration")
 algorithm_cal_plot_CM_CE <- eval_calib$plot + theme_classic() + labs(colour = "Algorithm")
 tab <- eval_calib$tab
 
@@ -2446,7 +2434,7 @@ write.csv(tab, paste0(table_path, "EvalMean_Calibration.csv"), row.names = TRUE)
 ggsave(algorithm_cal_plot_CM_CE, file = paste0(figure_path, "EvalMean_Calibration.png"), width = 7, height = 5)
 
 # evaluation means
-eval_eval <- bm_PlotEvalMean(bm.out = myBiomodModelOut_chthamalus_combined, dataset = "evaluation")
+eval_eval <- bm_PlotEvalMean(bm.out = myBiomodModelOut_chthamalus_GBIF_eDNA, dataset = "evaluation")
 algorithm_eval_plot_CM_CE <- eval_eval$plot + theme_classic() + labs(colour = "Algorithm")
 tab <- eval_eval$tab
 write.csv(tab, paste0(table_path, "EvalMean_Evaluation.csv"), row.names = TRUE)
@@ -2454,33 +2442,33 @@ ggsave(algorithm_eval_plot_CM_CE, file = paste0(figure_path, "EvalMean_Evaluatio
 
 # calibration boxplots - overall 
 # table produced here same as above, already saved
-eval_boxplot_algo <- bm_PlotEvalBoxplot(bm.out = myBiomodModelOut_chthamalus_combined, group.by = c('algo', 'algo'))
+eval_boxplot_algo <- bm_PlotEvalBoxplot(bm.out = myBiomodModelOut_chthamalus_GBIF_eDNA, group.by = c('algo', 'algo'))
 plot <- eval_boxplot_algo$plot + theme_classic() + labs(fill = "Algorithm",
                                                 y = "Calibration")
 ggsave(plot, file = paste0(figure_path, "EvalMean_boxplot.png"), width = 7, height = 5)
 
 # calibration boxplots - by run
-eval_boxplot_algo_run <- bm_PlotEvalBoxplot(bm.out = myBiomodModelOut_chthamalus_combined, group.by = c('algo', 'run'))
+eval_boxplot_algo_run <- bm_PlotEvalBoxplot(bm.out = myBiomodModelOut_chthamalus_GBIF_eDNA, group.by = c('algo', 'run'))
 plot <- eval_boxplot_algo_run$plot + theme_classic() + labs(fill = "Algorithm",
                                                 y = "Calibration")
 ggsave(plot, file = paste0(figure_path, "EvalMean_boxplot_run.png"), width = 8, height = 6)
 
 # Variable importance boxplots - overall 
 # figures (table produced here same as above, already saved
-val_importance_boxplot <- bm_PlotVarImpBoxplot(bm.out = myBiomodModelOut_chthamalus_combined, group.by = c('expl.var', 'algo', 'algo'))
+val_importance_boxplot <- bm_PlotVarImpBoxplot(bm.out = myBiomodModelOut_chthamalus_GBIF_eDNA, group.by = c('expl.var', 'algo', 'algo'))
 plot <- val_importance_boxplot$plot + theme_classic() + labs(fill = "Algorithm")
 ggsave(plot, file = paste0(figure_path, "VarImpBoxplot_ExplVar_Algo.png"), width = 8, height = 8)
 
 # Variable importance boxplots - by run
-val_importance_boxplot_run <- bm_PlotVarImpBoxplot(bm.out = myBiomodModelOut_chthamalus_combined, group.by = c('expl.var', 'algo', 'run'))
+val_importance_boxplot_run <- bm_PlotVarImpBoxplot(bm.out = myBiomodModelOut_chthamalus_GBIF_eDNA, group.by = c('expl.var', 'algo', 'run'))
 plot <- val_importance_boxplot_run$plot + theme_classic() + labs(fill = "Algorithm")
 ggsave(plot, file = paste0(figure_path, "VarImpBoxplot_ExplVar_Algo_Run.png"), width = 8, height = 6)
 
 # Response curves
-models_to_plot <- get_built_models(myBiomodModelOut_chthamalus_combined)[c(1:3, 12:14)]
+models_to_plot <- get_built_models(myBiomodModelOut_chthamalus_GBIF_eDNA)[c(1:3, 12:14)]
 
 # median
-response_median <- bm_PlotResponseCurves(bm.out = myBiomodModelOut_chthamalus_combined, 
+response_median <- bm_PlotResponseCurves(bm.out = myBiomodModelOut_chthamalus_GBIF_eDNA, 
                       models.chosen = models_to_plot,
                       fixed.var = 'median')
 tab <- response_median$tab
@@ -2489,7 +2477,7 @@ write.csv(tab, paste0(table_path, "pred.vals.median.csv"), row.names = TRUE)
 ggsave(plot, file = paste0(figure_path, "ResponseCurves_Median.png"), width = 13, height = 7)
 
 # min
-response_min<-bm_PlotResponseCurves(bm.out = myBiomodModelOut_chthamalus_combined, 
+response_min<-bm_PlotResponseCurves(bm.out = myBiomodModelOut_chthamalus_GBIF_eDNA, 
                       models.chosen = models_to_plot,
                       fixed.var = 'min')
 tab <- response_min$tab
@@ -2498,8 +2486,8 @@ write.csv(tab, paste0(table_path, "pred.vals.median.csv"), row.names = TRUE)
 ggsave(plot, file = paste0(figure_path, "pred.vals.median.png"), width = 13, height = 7)
 
 # heat map - median
-response_heatmap_median <- bm_PlotResponseCurves(bm.out = myBiomodModelOut_chthamalus_combined, 
-                      models.chosen = get_built_models(myBiomodModelOut_chthamalus_combined)[3],
+response_heatmap_median <- bm_PlotResponseCurves(bm.out = myBiomodModelOut_chthamalus_GBIF_eDNA, 
+                      models.chosen = get_built_models(myBiomodModelOut_chthamalus_GBIF_eDNA)[3],
                       fixed.var = 'median',
                       do.bivariate = TRUE)
 plot <- response_heatmap_median$plot + theme_classic()
@@ -2514,8 +2502,8 @@ ggsave(plot, file = paste0(figure_path, "ResponseCurve_Bivariate_Median.png"), w
 set.seed(seed.val.set)
 
 # Model ensemble models (takes around 30 mins)
-myBiomodEM_chthamalus_combined <- BIOMOD_EnsembleModeling(
-  bm.mod = myBiomodModelOut_chthamalus_combined,
+myBiomodEM_chthamalus_GBIF_eDNA <- BIOMOD_EnsembleModeling(
+  bm.mod = myBiomodModelOut_chthamalus_GBIF_eDNA,
   models.chosen = 'all',
   em.by = 'all',
   em.algo = c('EMmean', 'EMcv', 'EMci', 'EMca', 'EMwmean'),
@@ -2528,7 +2516,7 @@ myBiomodEM_chthamalus_combined <- BIOMOD_EnsembleModeling(
   seed.val = seed.val.set
 )
 
-myBiomodEM_chthamalus_combined
+myBiomodEM_chthamalus_GBIF_eDNA
 ```
 
 ```{r}
@@ -2537,22 +2525,22 @@ myBiomodEM_chthamalus_combined
 #| results: hide
 
 # Set paths
-table_path <- "Data/Processed_Data/Chtham.mont/Ensemble-Combined/"
-figure_path <- "Figures/Chtham.mont/Ensemble-Combined/"
+table_path <- "Data/Processed_Data/Chtham.mont/Ensemble-GBIF-eDNA/"
+figure_path <- "Figures/Chtham.mont/Ensemble-GBIF-eDNA/"
 
 # Create folders if they don't exist
 if (!dir.exists(table_path)) dir.create(table_path, recursive = TRUE)
 if (!dir.exists(figure_path)) dir.create(figure_path, recursive = TRUE)
 
 # Get evaluation scores & variable importance tables
-eval_scores <- get_evaluations(myBiomodEM_chthamalus_combined)
-var_imp <- get_variables_importance(myBiomodEM_chthamalus_combined)
+eval_scores <- get_evaluations(myBiomodEM_chthamalus_GBIF_eDNA)
+var_imp <- get_variables_importance(myBiomodEM_chthamalus_GBIF_eDNA)
 
 write.csv(eval_scores, paste0(table_path, "Evaluations_All.csv"), row.names = TRUE)
 write.csv(var_imp, paste0(table_path, "VariablesImportance_All.csv"), row.names = TRUE)
 
 # calibration means
-eval_calib <- bm_PlotEvalMean(bm.out = myBiomodEM_chthamalus_combined, group.by = 'full.name')
+eval_calib <- bm_PlotEvalMean(bm.out = myBiomodEM_chthamalus_GBIF_eDNA, group.by = 'full.name')
 plot <- eval_calib$plot + theme_classic() + labs(colour = "Type")
 tab <- eval_calib$tab
 
@@ -2560,7 +2548,7 @@ write.csv(tab, paste0(table_path, "EvalMean_Calibration.csv"), row.names = TRUE)
 ggsave(plot, file = paste0(figure_path, "EvalMean_Calibration.png"), width = 10, height = 5)
 
 # evaluation means
-eval_eval <- bm_PlotEvalMean(bm.out = myBiomodEM_chthamalus_combined, dataset = "evaluation")
+eval_eval <- bm_PlotEvalMean(bm.out = myBiomodEM_chthamalus_GBIF_eDNA, dataset = "evaluation")
 ensemble_eval_plot_CM_CE <- eval_eval$plot + theme_classic() + labs(colour = "Type")
 tab <- eval_eval$tab
 write.csv(tab, paste0(table_path, "EvalMean_Evaluation.csv"), row.names = TRUE)
@@ -2568,26 +2556,26 @@ ggsave(ensemble_eval_plot_CM_CE, file = paste0(figure_path, "EvalMean_Evaluation
 
 # calibration boxplots - overall 
 # table produced here same as above, already saved
-eval_boxplot_algo <- bm_PlotEvalBoxplot(bm.out = myBiomodEM_chthamalus_combined, group.by = c('full.name', 'full.name'))
+eval_boxplot_algo <- bm_PlotEvalBoxplot(bm.out = myBiomodEM_chthamalus_GBIF_eDNA, group.by = c('full.name', 'full.name'))
 plot <- eval_boxplot_algo$plot + theme_classic() + labs(fill = "Type",
                                                 y = "Calibration")
 ggsave(plot, file = paste0(figure_path, "EvalMean_boxplot.png"), width = 10, height = 5)
 
 # Variable importance boxplots - overall 
 # figures (table produced here same as above, already saved
-val_importance_boxplot <- bm_PlotVarImpBoxplot(bm.out = myBiomodEM_chthamalus_combined, c('expl.var', 'full.name', 'full.name'))
+val_importance_boxplot <- bm_PlotVarImpBoxplot(bm.out = myBiomodEM_chthamalus_GBIF_eDNA, c('expl.var', 'full.name', 'full.name'))
 plot <- val_importance_boxplot$plot + theme_classic() + labs(fill = "Type")
 ggsave(plot, file = paste0(figure_path, "VarImpBoxplot_ExplVar_Algo.png"), width = 8, height = 8)
 
-val_importance_boxplot_merged <- bm_PlotVarImpBoxplot(bm.out = myBiomodEM_chthamalus_combined, group.by = c('expl.var', 'algo', 'merged.by.run'))
+val_importance_boxplot_merged <- bm_PlotVarImpBoxplot(bm.out = myBiomodEM_chthamalus_GBIF_eDNA, group.by = c('expl.var', 'algo', 'merged.by.run'))
 plot <- val_importance_boxplot_merged$plot + theme_classic() + labs(fill = "Type")
 ggsave(plot, file = paste0(figure_path, "VarImpBoxplot_ExplVar_Algo.png"), width = 8, height = 8)
 
 # Response curves
-models_to_plot <- get_built_models(myBiomodEM_chthamalus_combined)[c(1, 6, 7)]
+models_to_plot <- get_built_models(myBiomodEM_chthamalus_GBIF_eDNA)[c(1, 6, 7)]
 
 # median
-response_median <- bm_PlotResponseCurves(bm.out = myBiomodEM_chthamalus_combined, 
+response_median <- bm_PlotResponseCurves(bm.out = myBiomodEM_chthamalus_GBIF_eDNA, 
                       models.chosen = models_to_plot,
                       fixed.var = 'median')
 tab <- response_median$tab
@@ -2596,7 +2584,7 @@ write.csv(tab, paste0(table_path, "pred.vals.median.csv"), row.names = TRUE)
 ggsave(plot, file = paste0(figure_path, "ResponseCurves_Median.png"), width = 13, height = 7)
 
 # min
-response_min<-bm_PlotResponseCurves(bm.out = myBiomodEM_chthamalus_combined, 
+response_min<-bm_PlotResponseCurves(bm.out = myBiomodEM_chthamalus_GBIF_eDNA, 
                       models.chosen = models_to_plot,
                       fixed.var = 'min')
 tab <- response_min$tab
@@ -2605,8 +2593,8 @@ write.csv(tab, paste0(table_path, "pred.vals.median.csv"), row.names = TRUE)
 ggsave(plot, file = paste0(figure_path, "pred.vals.median.png"), width = 13, height = 7)
 
 # heat map - median
-response_heatmap_median <- bm_PlotResponseCurves(bm.out = myBiomodEM_chthamalus_combined, 
-                      models.chosen = get_built_models(myBiomodEM_chthamalus_combined)[7],
+response_heatmap_median <- bm_PlotResponseCurves(bm.out = myBiomodEM_chthamalus_GBIF_eDNA, 
+                      models.chosen = get_built_models(myBiomodEM_chthamalus_GBIF_eDNA)[7],
                       fixed.var = 'median',
                       do.bivariate = TRUE)
 plot <- response_heatmap_median$plot + theme_classic()
@@ -2627,11 +2615,11 @@ CM_assessment_plot <- cowplot::plot_grid(
   algorithm_eval_plot_CM_CE,
   ncol = 2, 
   labels = c(
-    "a) Ensemble (GBIF-only)", 
+    "a) Ensemble (GBIF + GBIF)", 
     "b) Ensemble (GBIF-eDNA)", 
-    "c) Algorithms (Calibration, GBIF-only)", 
+    "c) Algorithms (Calibration, GBIF + GBIF)", 
     "d) Algorithms (Calibration, GBIF-eDNA)",
-    "e) Algorithms (Evaluation, GBIF-only)",
+    "e) Algorithms (Evaluation, GBIF + GBIF)",
     "f) Algorithms (Evaluation, GBIF-eDNA)"
   ),
   align = "v",
@@ -2653,7 +2641,7 @@ ggsave(CM_assessment_plot, filename = "Figures/CM_assessment_plot.png", width = 
 
 We are going to run projections and mask our rocky substrate layer over projections. This ensures that any areas without rocky habitats won't be included in our final maps.
 
-#### Projection 1 (Semibalanus - visual)
+#### Projection 1 (Semibalanus - GBIF + GBIF)
 
 ```{r}
 #| label: predict-model-semibalanus-visual
@@ -2662,8 +2650,8 @@ We are going to run projections and mask our rocky substrate layer over projecti
 
 #just using mean models from now on
 
-myBiomodEMProj_semibalanus_visual <- BIOMOD_EnsembleForecasting(
-  bm.em = myBiomodEM_semibalanus_visual,
+myBiomodEMProj_semibalanus_visual_GBIF_GBIF <- BIOMOD_EnsembleForecasting(
+  bm.em = myBiomodEM_semibalanus_GBIF_GBIF,
   proj.name = 'CurrentEM.semibalanus.visual',
   new.env = enviro_vars_current,
   models.chosen = c(
@@ -2673,10 +2661,10 @@ myBiomodEMProj_semibalanus_visual <- BIOMOD_EnsembleForecasting(
   #metric.filter = 'all'
 )
 
-myBiomodEMProj_semibalanus_visual
+myBiomodEMProj_semibalanus_visual_GBIF_GBIF
 
 # visualise
-proj_semibalanus_visual <- get_predictions(myBiomodEMProj_semibalanus_visual) # returns a rasterLayer
+proj_semibalanus_visual <- get_predictions(myBiomodEMProj_semibalanus_visual_GBIF_GBIF) # returns a rasterLayer
 plot(proj_semibalanus_visual)
 
 # after rocky mask
@@ -2737,15 +2725,15 @@ semibalanus_visual_current_plot_TSS <- ggplot() +
 semibalanus_visual_current_plot_TSS
 ```
 
-#### Projection 2 (Semibalanus - combined)
+#### Projection 2 (Semibalanus - GBIF + eDNA)
 
 ```{r}
 #| label: predict-model-semibalanus-combined
 #| echo: true
 #| results: hide
 
-myBiomodEMProj_semibalanus_combined <- BIOMOD_EnsembleForecasting(
-  bm.em = myBiomodEM_semibalanus_combined,
+myBiomodEMProj_semibalanus_GBIF_eDNA <- BIOMOD_EnsembleForecasting(
+  bm.em = myBiomodEM_semibalanus_GBIF_eDNA,
   proj.name = 'CurrentEM.semibalanus.combined',
   new.env = enviro_vars_current,
   models.chosen = c(
@@ -2755,10 +2743,10 @@ myBiomodEMProj_semibalanus_combined <- BIOMOD_EnsembleForecasting(
   #metric.filter = 'all'
 )
 
-myBiomodEMProj_semibalanus_combined
+myBiomodEMProj_semibalanus_GBIF_eDNA
 
 # visualise
-proj_semibalanus_combined <- get_predictions(myBiomodEMProj_semibalanus_combined) # returns a rasterLayer
+proj_semibalanus_combined <- get_predictions(myBiomodEMProj_semibalanus_GBIF_eDNA) # returns a rasterLayer
 plot(proj_semibalanus_combined)
 
 # after rocky mask
@@ -2818,15 +2806,15 @@ semibalanus_combined_current_plot_TSS <- ggplot() +
 semibalanus_combined_current_plot_TSS
 ```
 
-#### Projection 3 (Chthamalus - visual)
+#### Projection 3 (Chthamalus - GBIF + GBIF)
 
 ```{r}
 #| label: predict-model-chthamalus-visual
 #| echo: true
 #| results: hide
 
-myBiomodEMProj_chthamalus_visual <- BIOMOD_EnsembleForecasting(
-  bm.em = myBiomodEM_chthamalus_visual,
+myBiomodEMProj_chthamalus_GBIF_GBIF <- BIOMOD_EnsembleForecasting(
+  bm.em = myBiomodEM_chthamalus_GBIF_GBIF,
   proj.name = 'CurrentEM.chthamalus.visual',
   new.env = enviro_vars_current,
   models.chosen = c(
@@ -2836,10 +2824,10 @@ myBiomodEMProj_chthamalus_visual <- BIOMOD_EnsembleForecasting(
   #metric.filter = 'all'
 )
 
-myBiomodEMProj_chthamalus_visual
+myBiomodEMProj_chthamalus_GBIF_GBIF
 
 # visualise
-proj_chthamalus_visual <- get_predictions(myBiomodEMProj_chthamalus_visual) # returns a rasterLayer
+proj_chthamalus_visual <- get_predictions(myBiomodEMProj_chthamalus_GBIF_GBIF) # returns a rasterLayer
 plot(proj_chthamalus_visual)
 
 # after rocky mask
@@ -2899,15 +2887,15 @@ chthamalus_visual_current_plot_TSS <- ggplot() +
 chthamalus_visual_current_plot_TSS
 ```
 
-#### Projection 4 (Chthamalus - combined)
+#### Projection 4 (Chthamalus - GBIF + eDNA)
 
 ```{r}
 #| label: predict-model-chthamalus-combined
 #| echo: true
 #| results: hide
 
-myBiomodEMProj_chthamalus_combined <- BIOMOD_EnsembleForecasting(
-  bm.em = myBiomodEM_chthamalus_combined,
+myBiomodEMProj_chthamalus_GBIF_eDNA <- BIOMOD_EnsembleForecasting(
+  bm.em = myBiomodEM_chthamalus_GBIF_eDNA,
   proj.name = 'CurrentEM.chthamalus.combined',
   new.env = enviro_vars_current,
   models.chosen = c(
@@ -2917,10 +2905,10 @@ myBiomodEMProj_chthamalus_combined <- BIOMOD_EnsembleForecasting(
   #metric.filter = 'all'
 )
 
-myBiomodEMProj_chthamalus_combined
+myBiomodEMProj_chthamalus_GBIF_eDNA
 
 # visualise
-proj_chthamalus_combined <- get_predictions(myBiomodEMProj_chthamalus_combined) # returns a rasterLayer
+proj_chthamalus_combined <- get_predictions(myBiomodEMProj_chthamalus_GBIF_eDNA) # returns a rasterLayer
 plot(proj_chthamalus_combined)
 
 # after rocky mask
@@ -3106,7 +3094,7 @@ current_projections_plot <- cowplot::plot_grid(
   chthamalus_visual_current_plot_TSS,
   chthamalus_combined_current_plot_TSS, 
   CM_diff_plot,
-  ncol = 3, labels = c("(a) GBIF-only (SB)", "(b) GBIF-eDNA (SB)", "(c) Difference (SB)", "(d) GBIF-only (CM)", "(e) GBIF-eDNA (CM)", "(f) Difference (CM)"), align = "hv", label_fontface = "bold"
+  ncol = 3, labels = c("(a) GBIF + GBIF (SB)", "(b) GBIF + eDNA (SB)", "(c) Difference (SB)", "(d) GBIF + GBIF (CM)", "(e) GBIF + eDNA (CM)", "(f) Difference (CM)"), align = "hv", label_fontface = "bold"
 )
 
 current_projections_plot
@@ -3137,7 +3125,7 @@ SB_row <- plot_grid(
   semibalanus_combined_current_plot_TSS,
   SB_diff_plot,
   ncol = 3,
-  labels = c("a) GBIF-only", "b) GBIF-eDNA", "c) Difference"),
+  labels = c("a) GBIF + GBIF", "b) GBIF + eDNA", "c) Difference"),
   align = "hv"
 )
 
@@ -3147,7 +3135,7 @@ CM_row <- plot_grid(
   chthamalus_combined_current_plot_TSS, 
   CM_diff_plot,
   ncol = 3,
-  labels = c("d) GBIF-only", "e) GBIF-eDNA", "f) Difference"),
+  labels = c("d) GBIF + GBIF", "e) GBIF + eDNA", "f) Difference"),
   align = "hv"
 )
 
@@ -3168,13 +3156,13 @@ ggsave(current_plot_2, filename = "Figures/current_plot_2.png", width = 15, heig
 
 ### Forecasting change
 
-#### Forecast 1 (Semibalanus - visual)
+#### Forecast 1 (Semibalanus - GBIF + GBIF)
 
 ```{r}
 #| label: forecast-model-semibalanus-visual-EM
 
-myBiomodEMProjFuture_semibalanus_visual <- BIOMOD_EnsembleForecasting(
-  bm.em = myBiomodEM_semibalanus_visual,
+myBiomodEMProjFuture_semibalanus_GBIF_GBIF <- BIOMOD_EnsembleForecasting(
+  bm.em = myBiomodEM_semibalanus_GBIF_GBIF,
   proj.name = 'FutureEM.semibalanus.visual',
   new.env = enviro_vars_future,
   models.chosen = c(
@@ -3185,11 +3173,11 @@ myBiomodEMProjFuture_semibalanus_visual <- BIOMOD_EnsembleForecasting(
   #metric.filter = 'all'
 )
 
-myBiomodEMProjFuture_semibalanus_visual
-plot(myBiomodEMProjFuture_semibalanus_visual)
+myBiomodEMProjFuture_semibalanus_GBIF_GBIF
+plot(myBiomodEMProjFuture_semibalanus_GBIF_GBIF)
 
 # visualise
-future_semibalanus_visual <- get_predictions(myBiomodEMProjFuture_semibalanus_visual) # returns a rasterLayer
+future_semibalanus_visual <- get_predictions(myBiomodEMProjFuture_semibalanus_GBIF_GBIF) # returns a rasterLayer
 plot(future_semibalanus_visual)
 
 # after rocky mask
@@ -3256,7 +3244,7 @@ semibalanus_visual_future_plot
 
 # Project onto future conditions
 #myBiomodProjectionFuture_semibalanus_visual <- BIOMOD_Projection(
-  #bm.mod = myBiomodModelOut_semibalanus_visual,
+  #bm.mod = myBiomodModelOut_semibalanus_GBIF_GBIF,
   #proj.name = 'Future.single.semibalanus.visual',
   #new.env = enviro_vars_future,
   #models.chosen = 'all',
@@ -3266,7 +3254,7 @@ semibalanus_visual_future_plot
 
 # Load current and future binary projections
 #CurrentProj_semibalanus_visual <- get_predictions(myBiomodProj_semibalanus_visual, metric.binary = "TSS")
-#FutureProj_semibalanus_visual <- get_predictions(myBiomodEMProjFuture_semibalanus_visual, metric.binary = "TSS")
+#FutureProj_semibalanus_visual <- get_predictions(myBiomodEMProjFuture_semibalanus_GBIF_GBIF, metric.binary = "TSS")
 
 # Compute differences
 #myBiomodRangeSize_semibalanus_visual <- BIOMOD_RangeSize(proj.current = proj_semibalanus_visual_masked, proj.future = future_semibalanus_visual_masked)
@@ -3286,13 +3274,13 @@ semibalanus_visual_future_plot
 #)
 ```
 
-#### Forecast 2 (Semibalanus - combined)
+#### Forecast 2 (Semibalanus - GBIF + eDNA)
 
 ```{r}
 #| label: forecast-model-semibalanus-combined
 
-myBiomodEMProjFuture_semibalanus_combined <- BIOMOD_EnsembleForecasting(
-  bm.em = myBiomodEM_semibalanus_combined,
+myBiomodEMProjFuture_semibalanus_GBIF_eDNA <- BIOMOD_EnsembleForecasting(
+  bm.em = myBiomodEM_semibalanus_GBIF_eDNA,
   proj.name = 'FutureEM.semibalanus.combined',
   new.env = enviro_vars_future,
   models.chosen = c(
@@ -3303,11 +3291,11 @@ myBiomodEMProjFuture_semibalanus_combined <- BIOMOD_EnsembleForecasting(
   #metric.filter = 'all'
 )
 
-myBiomodEMProjFuture_semibalanus_combined
-plot(myBiomodEMProjFuture_semibalanus_combined)
+myBiomodEMProjFuture_semibalanus_GBIF_eDNA
+plot(myBiomodEMProjFuture_semibalanus_GBIF_eDNA)
 
 # visualise
-future_semibalanus_combined <- get_predictions(myBiomodEMProjFuture_semibalanus_combined) # returns a rasterLayer
+future_semibalanus_combined <- get_predictions(myBiomodEMProjFuture_semibalanus_GBIF_eDNA) # returns a rasterLayer
 plot(future_semibalanus_combined)
 
 # after rocky mask
@@ -3374,7 +3362,7 @@ semibalanus_combined_future_plot
 
 # Project onto future conditions
 #myBiomodProjectionFuture_semibalanus_combined <- BIOMOD_Projection(
-  #bm.mod = myBiomodModelOut_semibalanus_combined,
+  #bm.mod = myBiomodModelOut_semibalanus_GBIF_eDNA,
   #proj.name = 'Future.single.semibalanus.combined',
   #new.env = enviro_vars_future,
   #models.chosen = 'all',
@@ -3406,13 +3394,13 @@ semibalanus_combined_future_plot
 #)
 ```
 
-#### Forecast 3 (Chthamalus - visual)
+#### Forecast 3 (Chthamalus - GBIF + GBIF)
 
 ```{r}
 #| label: forecast-model-chthamalus-visual
 
-myBiomodEMProjFuture_chthamalus_visual<- BIOMOD_EnsembleForecasting(
-  bm.em = myBiomodEM_chthamalus_visual,
+myBiomodEMProjFuture_chthamalus_GBIF_GBIF<- BIOMOD_EnsembleForecasting(
+  bm.em = myBiomodEM_chthamalus_GBIF_GBIF,
   proj.name = 'FutureEM.chthamalus.visual',
   new.env = enviro_vars_future,
   models.chosen = c(
@@ -3423,11 +3411,11 @@ myBiomodEMProjFuture_chthamalus_visual<- BIOMOD_EnsembleForecasting(
   metric.filter = 'all'
 )
 
-myBiomodEMProjFuture_chthamalus_visual
-plot(myBiomodEMProjFuture_chthamalus_visual)
+myBiomodEMProjFuture_chthamalus_GBIF_GBIF
+plot(myBiomodEMProjFuture_chthamalus_GBIF_GBIF)
 
 # visualise
-future_chthamalus_visual <- get_predictions(myBiomodEMProjFuture_chthamalus_visual) # returns a rasterLayer
+future_chthamalus_visual <- get_predictions(myBiomodEMProjFuture_chthamalus_GBIF_GBIF) # returns a rasterLayer
 plot(future_chthamalus_visual)
 
 # after rocky mask
@@ -3494,7 +3482,7 @@ chthamalus_visual_future_plot
 
 # Project onto future conditions
 #myBiomodProjectionFuture_chthamalus_visual <- BIOMOD_Projection(
-  #bm.mod = myBiomodModelOut_chthamalus_visual,
+  #bm.mod = myBiomodModelOut_chthamalus_GBIF,
   #proj.name = 'Future.single.chthamalus.visual',
   #new.env = enviro_vars_future,
   #models.chosen = 'all',
@@ -3524,13 +3512,13 @@ chthamalus_visual_future_plot
 #)
 ```
 
-#### Forecast 4 (Chthamalus - combined)
+#### Forecast 4 (Chthamalus - GBIF + eDNA)
 
 ```{r}
 #| label: forecast-model-chthamalus-combined
 
-myBiomodEMProjFuture_chthamalus_combined<- BIOMOD_EnsembleForecasting(
-  bm.em = myBiomodEM_chthamalus_combined,
+myBiomodEMProjFuture_chthamalus_GBIF_eDNA<- BIOMOD_EnsembleForecasting(
+  bm.em = myBiomodEM_chthamalus_GBIF_eDNA,
   proj.name = 'FutureEM.chthamalus.combined',
   new.env = enviro_vars_future,
   models.chosen = c(
@@ -3541,11 +3529,11 @@ myBiomodEMProjFuture_chthamalus_combined<- BIOMOD_EnsembleForecasting(
   metric.filter = 'all'
 )
 
-myBiomodEMProjFuture_chthamalus_combined
-plot(myBiomodEMProjFuture_chthamalus_combined)
+myBiomodEMProjFuture_chthamalus_GBIF_eDNA
+plot(myBiomodEMProjFuture_chthamalus_GBIF_eDNA)
 
 # visualise
-future_chthamalus_combined <- get_predictions(myBiomodEMProjFuture_chthamalus_combined) # returns a rasterLayer
+future_chthamalus_combined <- get_predictions(myBiomodEMProjFuture_chthamalus_GBIF_eDNA) # returns a rasterLayer
 plot(future_chthamalus_combined)
 
 # after rocky mask
@@ -3612,7 +3600,7 @@ chthamalus_combined_future_plot
 
 # Project onto future conditions
 #myBiomodProjectionFuture_chthamalus_combined <- BIOMOD_Projection(
-  ##bm.mod = myBiomodModelOut_chthamalus_combined,
+  ##bm.mod = myBiomodModelOut_chthamalus_GBIF_eDNA,
   #proj.name = 'Future.single.chthamalus.combined',
   #new.env = enviro_vars_future,
   #models.chosen = 'all',
@@ -4119,44 +4107,44 @@ Now let's make our final comparison plots for the write-up. These mainly consist
 
 #semibalanus
 
-eval.semi.bal.individual.visual <- read.csv("Data/Processed_Data/Semi.bal/Individual-Visual/Evaluations_All.csv", row.names = 1)
+eval.semi.bal.individual.visual <- read.csv("Data/Processed_Data/Semi.bal/Individual-GBIF-GBIF/Evaluations_All.csv", row.names = 1)
 eval.semi.bal.individual.visual$model_type = "individual_algo"
-eval.semi.bal.individual.visual$dataset = "GBIF-only"
+eval.semi.bal.individual.visual$dataset = "GBIF + GBIF"
 eval.semi.bal.individual.visual$species = "Semibalanus balanoides"
 
-eval.semi.bal.ensemble.visual <- read.csv("Data/Processed_Data/Semi.bal/Ensemble-Visual/Evaluations_All.csv", row.names = 1)
+eval.semi.bal.ensemble.visual <- read.csv("Data/Processed_Data/Semi.bal/Ensemble-GBIF-GBIF/Evaluations_All.csv", row.names = 1)
 eval.semi.bal.ensemble.visual$model_type = "ensemble"
-eval.semi.bal.ensemble.visual$dataset = "GBIF-only"
+eval.semi.bal.ensemble.visual$dataset = "GBIF + GBIF"
 eval.semi.bal.ensemble.visual$species = "Semibalanus balanoides"
 
-eval.semi.bal.individual.combined <- read.csv("Data/Processed_Data/Semi.bal/Individual-Combined/Evaluations_All.csv", row.names = 1)
+eval.semi.bal.individual.combined <- read.csv("Data/Processed_Data/Semi.bal/Individual-GBIF-eDNA/Evaluations_All.csv", row.names = 1)
 eval.semi.bal.individual.combined$model_type = "individual_algo"
 eval.semi.bal.individual.combined$dataset = "GBIF-eDNA"
 eval.semi.bal.individual.combined$species = "Semibalanus balanoides"
 
-eval.semi.bal.ensemble.combined <- read.csv("Data/Processed_Data/Semi.bal/Ensemble-Combined/Evaluations_All.csv", row.names = 1)
+eval.semi.bal.ensemble.combined <- read.csv("Data/Processed_Data/Semi.bal/Ensemble-GBIF-eDNA/Evaluations_All.csv", row.names = 1)
 eval.semi.bal.ensemble.combined$model_type = "ensemble"
 eval.semi.bal.ensemble.combined$dataset = "GBIF-eDNA"
 eval.semi.bal.ensemble.combined$species = "Semibalanus balanoides"
 
 # chthamalus
 
-eval.chth.mon.individual.visual <- read.csv("Data/Processed_Data/Chtham.mont/Individual-Visual/Evaluations_All.csv", row.names = 1)
+eval.chth.mon.individual.visual <- read.csv("Data/Processed_Data/Chtham.mont/Individual-GBIF-GBIF/Evaluations_All.csv", row.names = 1)
 eval.chth.mon.individual.visual$model_type = "individual_algo"
-eval.chth.mon.individual.visual$dataset = "GBIF-only"
+eval.chth.mon.individual.visual$dataset = "GBIF + GBIF"
 eval.chth.mon.individual.visual$species = "Chthamalus montagui"
 
-eval.chth.mon.ensemble.visual <- read.csv("Data/Processed_Data/Chtham.mont/Ensemble-Visual/Evaluations_All.csv", row.names = 1)
+eval.chth.mon.ensemble.visual <- read.csv("Data/Processed_Data/Chtham.mont/Ensemble-GBIF-GBIF/Evaluations_All.csv", row.names = 1)
 eval.chth.mon.ensemble.visual$model_type = "ensemble"
-eval.chth.mon.ensemble.visual$dataset = "GBIF-only"
+eval.chth.mon.ensemble.visual$dataset = "GBIF + GBIF"
 eval.chth.mon.ensemble.visual$species = "Chthamalus montagui"
 
-eval.chth.mon.individual.combined <- read.csv("Data/Processed_Data/Chtham.mont/Individual-Combined/Evaluations_All.csv", row.names = 1)
+eval.chth.mon.individual.combined <- read.csv("Data/Processed_Data/Chtham.mont/Individual-GBIF-eDNA/Evaluations_All.csv", row.names = 1)
 eval.chth.mon.individual.combined$model_type = "individual_algo"
 eval.chth.mon.individual.combined$dataset = "GBIF-eDNA"
 eval.chth.mon.individual.combined$species = "Chthamalus montagui"
 
-eval.chth.mon.ensemble.combined <- read.csv("Data/Processed_Data/Chtham.mont/Ensemble-Combined/Evaluations_All.csv", row.names = 1)
+eval.chth.mon.ensemble.combined <- read.csv("Data/Processed_Data/Chtham.mont/Ensemble-GBIF-eDNA/Evaluations_All.csv", row.names = 1)
 eval.chth.mon.ensemble.combined$model_type = "ensemble"
 eval.chth.mon.ensemble.combined$dataset = "GBIF-eDNA"
 eval.chth.mon.ensemble.combined$species = "Chthamalus montagui"
@@ -4198,7 +4186,7 @@ eval_boxplot_ensemble <- ggplot(full_evals_ensemble_mean, aes(x = metric.eval, y
   theme_bw() +
   facet_wrap(~factor(species, neworder)) +
   scale_fill_manual(values = c(
-    "GBIF-only" = GBIF_only_colour,
+    "GBIF + GBIF" = GBIF_only_colour,
     "GBIF-eDNA" = GBIF_eDNA_colour
   )) +
   labs(x = "Metric", y = "Evaluation value", fill = "Dataset") +
@@ -4217,7 +4205,7 @@ eval_boxplot_individual<- ggplot(full_evals_individual, aes(x = metric.eval, y =
   theme_bw() +
   facet_wrap(~factor(species, neworder)) +
     scale_fill_manual(values = c(
-    "GBIF-only" = GBIF_only_colour,
+    "GBIF + GBIF" = GBIF_only_colour,
     "GBIF-eDNA" = GBIF_eDNA_colour
   )) +
   labs(x = "Metric", y = "Evaluation value", fill = "Dataset")
@@ -4278,7 +4266,7 @@ eval_boxplot_individual_models_data_TSS <- ggplot(
   facet_wrap( ~ factor(species, neworder)) +
   labs(x = "Algorithm", y = "TSS", fill = "Dataset") +
   scale_fill_manual(values = c(
-    "GBIF-only" = GBIF_only_colour,
+    "GBIF + GBIF" = GBIF_only_colour,
     "GBIF-eDNA" = GBIF_eDNA_colour
   )) +
   geom_hline(yintercept=0.4, linetype='dashed', col = 'red')
@@ -4298,7 +4286,7 @@ eval_boxplot_individual_models_data_ROC <- ggplot(
   facet_wrap( ~ factor(species, neworder)) +
   labs(x = "Algorithm", y = "ROC", fill = "Dataset")+
   scale_fill_manual(values = c(
-    "GBIF-only" = GBIF_only_colour,
+    "GBIF + GBIF" = GBIF_only_colour,
     "GBIF-eDNA" = GBIF_eDNA_colour
   )) +
   geom_hline(yintercept=0.7, linetype='dashed', col = 'red')
@@ -4349,7 +4337,7 @@ eval_boxplot_join_data_TSS <- ggplot(
   facet_wrap( ~ factor(species, neworder)) +
   labs(x = "Model type", y = "TSS", fill = "Dataset") +
   scale_fill_manual(values = c(
-    "GBIF-only" = GBIF_only_colour,
+    "GBIF + GBIF" = GBIF_only_colour,
     "GBIF-eDNA" = GBIF_eDNA_colour
   ))+
   scale_x_discrete(labels = c("Ensemble", "Individual")) +
@@ -4370,7 +4358,7 @@ eval_boxplot_join_data_ROC <- ggplot(
   facet_wrap( ~ factor(species, neworder)) +
   labs(x = "Model type", y = "ROC", fill = "Dataset") +
   scale_fill_manual(values = c(
-    "GBIF-only" = GBIF_only_colour,
+    "GBIF + GBIF" = GBIF_only_colour,
     "GBIF-eDNA" = GBIF_eDNA_colour
   )) +
   scale_x_discrete(labels = c("Ensemble", "Individual"))
@@ -4395,7 +4383,7 @@ mean_range_plot_mods_TSS <- ggplot(
   summary_eval %>%
     filter(metric.eval == "TSS") %>%
     mutate(dataset = factor(
-      dataset, levels = c("GBIF-only", "GBIF-eDNA")
+      dataset, levels = c("GBIF + GBIF", "GBIF-eDNA")
     )),
   aes(x = model_type, y = mean, colour = dataset)
 ) +
@@ -4409,9 +4397,9 @@ mean_range_plot_mods_TSS <- ggplot(
     labels = c("Individual", "Ensemble")
   ) +   # reorder x-axis
   scale_colour_manual(
-    values = c("GBIF-only" = GBIF_only_colour, 
+    values = c("GBIF + GBIF" = GBIF_only_colour, 
                "GBIF-eDNA" = GBIF_eDNA_colour),
-    breaks = c("GBIF-only", "GBIF-eDNA")
+    breaks = c("GBIF + GBIF", "GBIF-eDNA")
   ) +            # reorder datasets
   theme_bw() +
   theme(text = element_text(size = 13), legend.position = "none",
@@ -4427,7 +4415,7 @@ mean_range_plot_mods_roc <- ggplot(
   summary_eval %>%
     filter(metric.eval == "ROC") %>%
     mutate(dataset = factor(
-      dataset, levels = c("GBIF-only", "GBIF-eDNA")
+      dataset, levels = c("GBIF + GBIF", "GBIF-eDNA")
     )),
   aes(x = model_type, y = mean, colour = dataset)
 ) +
@@ -4441,9 +4429,9 @@ mean_range_plot_mods_roc <- ggplot(
     labels = c("Individual", "Ensemble")
   ) +   # reorder x-axis
   scale_colour_manual(
-    values = c("GBIF-only" = GBIF_only_colour, 
+    values = c("GBIF + GBIF" = GBIF_only_colour, 
                "GBIF-eDNA" = GBIF_eDNA_colour),
-    breaks = c("GBIF-only", "GBIF-eDNA")
+    breaks = c("GBIF + GBIF", "GBIF-eDNA")
   ) +            # reorder datasets
   theme_bw() +
   theme(text = element_text(size = 13),
@@ -4480,44 +4468,44 @@ summary_eval2
 
 #semibalanus
 
-var.semi.bal.individual.visual <- read.csv("Data/Processed_Data/Semi.bal/Individual-Visual/VariablesImportance_All.csv", row.names = 1)
+var.semi.bal.individual.visual <- read.csv("Data/Processed_Data/Semi.bal/Individual-GBIF-GBIF/VariablesImportance_All.csv", row.names = 1)
 var.semi.bal.individual.visual$model_type = "individual_algo"
-var.semi.bal.individual.visual$dataset = "GBIF-only"
+var.semi.bal.individual.visual$dataset = "GBIF + GBIF"
 var.semi.bal.individual.visual$species = "Semibalanus balanoides"
 
-var.semi.bal.ensemble.visual <- read.csv("Data/Processed_Data/Semi.bal/Ensemble-Visual/VariablesImportance_All.csv", row.names = 1)
+var.semi.bal.ensemble.visual <- read.csv("Data/Processed_Data/Semi.bal/Ensemble-GBIF-GBIF/VariablesImportance_All.csv", row.names = 1)
 var.semi.bal.ensemble.visual$model_type = "ensemble"
-var.semi.bal.ensemble.visual$dataset = "GBIF-only"
+var.semi.bal.ensemble.visual$dataset = "GBIF + GBIF"
 var.semi.bal.ensemble.visual$species = "Semibalanus balanoides"
 
-var.semi.bal.individual.combined <- read.csv("Data/Processed_Data/Semi.bal/Individual-Combined/VariablesImportance_All.csv", row.names = 1)
+var.semi.bal.individual.combined <- read.csv("Data/Processed_Data/Semi.bal/Individual-GBIF-eDNA/VariablesImportance_All.csv", row.names = 1)
 var.semi.bal.individual.combined$model_type = "individual_algo"
 var.semi.bal.individual.combined$dataset = "GBIF-eDNA"
 var.semi.bal.individual.combined$species = "Semibalanus balanoides"
 
-var.semi.bal.ensemble.combined <- read.csv("Data/Processed_Data/Semi.bal/Ensemble-Combined/VariablesImportance_All.csv", row.names = 1)
+var.semi.bal.ensemble.combined <- read.csv("Data/Processed_Data/Semi.bal/Ensemble-GBIF-eDNA/VariablesImportance_All.csv", row.names = 1)
 var.semi.bal.ensemble.combined$model_type = "ensemble"
 var.semi.bal.ensemble.combined$dataset = "GBIF-eDNA"
 var.semi.bal.ensemble.combined$species = "Semibalanus balanoides"
 
 # chthamalus
 
-var.chth.mon.individual.visual <- read.csv("Data/Processed_Data/Chtham.mont/Individual-Visual/VariablesImportance_All.csv", row.names = 1)
+var.chth.mon.individual.visual <- read.csv("Data/Processed_Data/Chtham.mont/Individual-GBIF-GBIF/VariablesImportance_All.csv", row.names = 1)
 var.chth.mon.individual.visual$model_type = "individual_algo"
-var.chth.mon.individual.visual$dataset = "GBIF-only"
+var.chth.mon.individual.visual$dataset = "GBIF + GBIF"
 var.chth.mon.individual.visual$species = "Chthamalus montagui"
 
-var.chth.mon.ensemble.visual <- read.csv("Data/Processed_Data/Chtham.mont/Ensemble-Visual/VariablesImportance_All.csv", row.names = 1)
+var.chth.mon.ensemble.visual <- read.csv("Data/Processed_Data/Chtham.mont/Ensemble-GBIF-GBIF/VariablesImportance_All.csv", row.names = 1)
 var.chth.mon.ensemble.visual$model_type = "ensemble"
-var.chth.mon.ensemble.visual$dataset = "GBIF-only"
+var.chth.mon.ensemble.visual$dataset = "GBIF + GBIF"
 var.chth.mon.ensemble.visual$species = "Chthamalus montagui"
 
-var.chth.mon.individual.combined <- read.csv("Data/Processed_Data/Chtham.mont/Individual-Combined/VariablesImportance_All.csv", row.names = 1)
+var.chth.mon.individual.combined <- read.csv("Data/Processed_Data/Chtham.mont/Individual-GBIF-eDNA/VariablesImportance_All.csv", row.names = 1)
 var.chth.mon.individual.combined$model_type = "individual_algo"
 var.chth.mon.individual.combined$dataset = "GBIF-eDNA"
 var.chth.mon.individual.combined$species = "Chthamalus montagui"
 
-var.chth.mon.ensemble.combined <- read.csv("Data/Processed_Data/Chtham.mont/Ensemble-Combined/VariablesImportance_All.csv", row.names = 1)
+var.chth.mon.ensemble.combined <- read.csv("Data/Processed_Data/Chtham.mont/Ensemble-GBIF-eDNA/VariablesImportance_All.csv", row.names = 1)
 var.chth.mon.ensemble.combined$model_type = "ensemble"
 var.chth.mon.ensemble.combined$dataset = "GBIF-eDNA"
 var.chth.mon.ensemble.combined$species = "Chthamalus montagui"
@@ -4547,13 +4535,13 @@ full_vars_ensemble_mean <- full_vars_ensemble %>% filter(algo == "EMmean")
 
 vars_boxplot_ensemble<- ggplot(full_vars_ensemble_mean  %>%
     mutate(dataset = factor(
-      dataset, levels = c("GBIF-only", "GBIF-eDNA")
+      dataset, levels = c("GBIF + GBIF", "GBIF-eDNA")
     )), aes(x = expl.var, y = var.imp, fill = dataset)) + 
   geom_boxplot() +
   theme_bw() +
   facet_wrap(~factor(species, neworder)) +
     scale_fill_manual(values = c(
-    "GBIF-only" = GBIF_only_colour,
+    "GBIF + GBIF" = GBIF_only_colour,
     "GBIF-eDNA" = GBIF_eDNA_colour
   )) +
   labs(x = "Environmental variable", y = "Variable importance", fill = "Dataset")+
@@ -4571,7 +4559,7 @@ ggsave(vars_boxplot_ensemble, file = "Figures/vars_boxplot_ensemble.png", height
 vars_boxplot_individual <- ggplot(
   full_vars_individual %>%
     mutate(dataset = factor(
-      dataset, levels = c("GBIF-only", "GBIF-eDNA")
+      dataset, levels = c("GBIF + GBIF", "GBIF-eDNA")
     )),
   aes(x = expl.var, y = var.imp, fill = dataset)
 ) +
@@ -4579,7 +4567,7 @@ vars_boxplot_individual <- ggplot(
   theme_bw() +
   facet_grid(algo ~ factor(species, neworder)) +
   labs(x = "Environmental variable", y = "Variable importance", fill = "Dataset") +
-  scale_fill_manual(values = c("GBIF-only" = GBIF_only_colour, "GBIF-eDNA" = GBIF_eDNA_colour)) +
+  scale_fill_manual(values = c("GBIF + GBIF" = GBIF_only_colour, "GBIF-eDNA" = GBIF_eDNA_colour)) +
   scale_x_discrete(labels = c("SST", "pH", "Wave fetch")) +
   theme(strip.text = element_text(face = "italic"))
 
@@ -4593,14 +4581,14 @@ ggsave(vars_boxplot_individual, file = "Figures/vars_boxplot_individual.png", he
 ```{r}
 #| label: SB-visual-response-curve
 
-# semibalanus - visual
+# Semibalanus - GBIF + GBIF
 
-response_mean_SB_visual <- bm_PlotResponseCurves(bm.out = myBiomodModelOut_semibalanus_visual, 
+response_mean_SB_visual <- bm_PlotResponseCurves(bm.out = myBiomodModelOut_semibalanus_GBIF_GBIF, 
                       models.chosen = "all",
                       fixed.var = 'mean')
 tab_mean_SB_visual <- response_mean_SB_visual$tab
 
-response_mean_SB_visual_ensemble <- bm_PlotResponseCurves(bm.out = myBiomodEM_semibalanus_visual, 
+response_mean_SB_visual_ensemble <- bm_PlotResponseCurves(bm.out = myBiomodEM_semibalanus_GBIF_GBIF, 
                       models.chosen = "all",
                       fixed.var = 'mean')
 tab_mean_SB_visual_ensemble <- response_mean_SB_visual_ensemble$tab
@@ -4651,14 +4639,14 @@ plot_mean_SB_visual
 ```{r}
 #| label: SB-combined-response-curve
 
-# semibalanus - combined
+# Semibalanus - GBIF + eDNA
 
-response_mean_SB_combined <- bm_PlotResponseCurves(bm.out = myBiomodModelOut_semibalanus_combined, 
+response_mean_SB_combined <- bm_PlotResponseCurves(bm.out = myBiomodModelOut_semibalanus_GBIF_eDNA, 
                       models.chosen = "all",
                       fixed.var = 'mean')
 tab_mean_SB_combined <- response_mean_SB_combined$tab
 
-response_mean_SB_combined_ensemble <- bm_PlotResponseCurves(bm.out = myBiomodEM_semibalanus_combined, 
+response_mean_SB_combined_ensemble <- bm_PlotResponseCurves(bm.out = myBiomodEM_semibalanus_GBIF_eDNA, 
                       models.chosen = "all",
                       fixed.var = 'mean')
 tab_mean_SB_combined_ensemble <- response_mean_SB_combined_ensemble$tab
@@ -4710,14 +4698,14 @@ plot_mean_SB_combined
 ```{r}
 #| label: CM-visual-response-curve
 
-# chthamalus - visual
+# Chthamalus - GBIF + GBIF
 
-response_mean_CM_visual <- bm_PlotResponseCurves(bm.out = myBiomodModelOut_chthamalus_visual, 
+response_mean_CM_visual <- bm_PlotResponseCurves(bm.out = myBiomodModelOut_chthamalus_GBIF, 
                       models.chosen = "all",
                       fixed.var = 'mean')
 tab_mean_CM_visual <- response_mean_CM_visual$tab
 
-response_mean_CM_visual_ensemble <- bm_PlotResponseCurves(bm.out = myBiomodEM_chthamalus_visual, 
+response_mean_CM_visual_ensemble <- bm_PlotResponseCurves(bm.out = myBiomodEM_chthamalus_GBIF_GBIF, 
                       models.chosen = "all",
                       fixed.var = 'mean')
 tab_mean_CM_visual_ensemble <- response_mean_CM_visual_ensemble$tab
@@ -4769,14 +4757,14 @@ plot_mean_CM_visual
 ```{r}
 #| label: CM-combined-response-curve
 
-# chthamalus - combined
+# Chthamalus - GBIF + eDNA
 
-response_mean_CM_combined <- bm_PlotResponseCurves(bm.out = myBiomodModelOut_chthamalus_combined, 
+response_mean_CM_combined <- bm_PlotResponseCurves(bm.out = myBiomodModelOut_chthamalus_GBIF_eDNA, 
                       models.chosen = "all",
                       fixed.var = 'mean')
 tab_mean_CM_combined <- response_mean_CM_combined$tab
 
-response_mean_CM_combined_ensemble <- bm_PlotResponseCurves(bm.out = myBiomodEM_chthamalus_combined, 
+response_mean_CM_combined_ensemble <- bm_PlotResponseCurves(bm.out = myBiomodEM_chthamalus_GBIF_eDNA, 
                       models.chosen = "all",
                       fixed.var = 'mean')
 tab_mean_CM_combined_ensemble <- response_mean_CM_combined_ensemble$tab
