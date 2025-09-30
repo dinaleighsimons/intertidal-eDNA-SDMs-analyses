@@ -1,0 +1,7 @@
+"","name","mean1","mean2","sd1","sd2"
+"1","Semibalanus.balanoides_EMcaByROC_mergedData_mergedRun_mergedAlgo",0.873,0.548,NA,NA
+"2","Semibalanus.balanoides_EMcaByTSS_mergedData_mergedRun_mergedAlgo",0.962,0.797,NA,NA
+"3","Semibalanus.balanoides_EMmeanByROC_mergedData_mergedRun_mergedAlgo",0.949,0.767,NA,NA
+"4","Semibalanus.balanoides_EMmeanByTSS_mergedData_mergedRun_mergedAlgo",0.987,0.889,NA,NA
+"5","Semibalanus.balanoides_EMwmeanByROC_mergedData_mergedRun_mergedAlgo",0.967,0.837,NA,NA
+"6","Semibalanus.balanoides_EMwmeanByTSS_mergedData_mergedRun_mergedAlgo",0.992,0.915,NA,NA

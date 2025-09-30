@@ -1,0 +1,13 @@
+"","full.name","merged.by.PA","merged.by.run","merged.by.algo","filtered.by","algo","metric.eval","cutoff","sensitivity","specificity","calibration","validation","evaluation"
+"1","Chthamalus.montagui_EMmeanByTSS_mergedData_mergedRun_mergedAlgo","mergedData","mergedRun","mergedAlgo","TSS","EMmean","TSS",594,83.14,93.554,0.767,NA,0.554
+"2","Chthamalus.montagui_EMmeanByTSS_mergedData_mergedRun_mergedAlgo","mergedData","mergedRun","mergedAlgo","TSS","EMmean","ROC",592.5,83.306,93.554,0.961,NA,0.845
+"3","Chthamalus.montagui_EMcaByTSS_mergedData_mergedRun_mergedAlgo","mergedData","mergedRun","mergedAlgo","TSS","EMca","TSS",187,97.851,80,0.779,NA,0.607
+"4","Chthamalus.montagui_EMcaByTSS_mergedData_mergedRun_mergedAlgo","mergedData","mergedRun","mergedAlgo","TSS","EMca","ROC",187.5,97.851,80,0.966,NA,0.831
+"5","Chthamalus.montagui_EMwmeanByTSS_mergedData_mergedRun_mergedAlgo","mergedData","mergedRun","mergedAlgo","TSS","EMwmean","TSS",604,83.306,94.545,0.779,NA,0.554
+"6","Chthamalus.montagui_EMwmeanByTSS_mergedData_mergedRun_mergedAlgo","mergedData","mergedRun","mergedAlgo","TSS","EMwmean","ROC",602.5,83.306,94.545,0.966,NA,0.843
+"7","Chthamalus.montagui_EMmeanByROC_mergedData_mergedRun_mergedAlgo","mergedData","mergedRun","mergedAlgo","ROC","EMmean","TSS",594,83.14,93.554,0.767,NA,0.554
+"8","Chthamalus.montagui_EMmeanByROC_mergedData_mergedRun_mergedAlgo","mergedData","mergedRun","mergedAlgo","ROC","EMmean","ROC",592.5,83.306,93.554,0.961,NA,0.845
+"9","Chthamalus.montagui_EMcaByROC_mergedData_mergedRun_mergedAlgo","mergedData","mergedRun","mergedAlgo","ROC","EMca","TSS",187,97.851,79.835,0.777,NA,0.576
+"10","Chthamalus.montagui_EMcaByROC_mergedData_mergedRun_mergedAlgo","mergedData","mergedRun","mergedAlgo","ROC","EMca","ROC",187.5,97.851,79.835,0.967,NA,0.824
+"11","Chthamalus.montagui_EMwmeanByROC_mergedData_mergedRun_mergedAlgo","mergedData","mergedRun","mergedAlgo","ROC","EMwmean","TSS",595,83.306,93.884,0.774,NA,0.554
+"12","Chthamalus.montagui_EMwmeanByROC_mergedData_mergedRun_mergedAlgo","mergedData","mergedRun","mergedAlgo","ROC","EMwmean","ROC",595.5,83.306,94.05,0.964,NA,0.843
