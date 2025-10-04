@@ -1,5 +1,5 @@
 ---
-title: "Ensemble models with eDNA data improve climate-based distribution predictions of competing intertidal barnacles"
+title: "Consistent ensemble predictions of intertidal barnacle distributions across visual and eDNA-based occurrence data"
 format: html
 embed-resources: true
 editor: visual
@@ -12,7 +12,7 @@ warning: false
 
 ## Introduction
 
-This pipeline replicates all analyses in Simons *et al* (2025) "Ensemble models with eDNA data improve climate-based distribution predictions of competing intertidal barnacles".
+This pipeline replicates all analyses in Simons *et al* (2025) "Consistent ensemble predictions of intertidal barnacle distributions across visual and eDNA-based occurrence data".
 
 ## Set-up
 
